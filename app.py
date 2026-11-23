@@ -26,7 +26,7 @@ st.set_page_config(
 )
 
 # ==============================================================================
-# CUSTOM CSS: DARK COMMAND CENTER + FIX HEADER + ANIMASI CAHAYA
+# CUSTOM CSS: DARK COMMAND CENTER + FIX HEADER + ANIMASI CAHAYA + RESPONSIVE
 # ==============================================================================
 st.markdown("""
 <style>
@@ -428,7 +428,7 @@ FONT_CLR = "#cbd5e1"
 GRID_CLR = "rgba(0, 229, 255, 0.14)"
 
 # ==============================================================================
-# BARIS 2: ARMADA | PETA MARITIM UPGRADE | KOMPOSISI & REKOR
+# BARIS 2: ARMADA | PETA MARITIM (100% BEBAS API KEY) | KOMPOSISI & REKOR
 # ==============================================================================
 col_left, col_mid, col_right = st.columns([1.15, 2.35, 1.15], gap="small")
 
@@ -498,6 +498,11 @@ with col_mid:
             html, body { width:100%; height:100%; margin:0; padding:0; background:#050d1a; font-family:'Segoe UI',sans-serif; overflow:hidden; }
             .wrap { position:relative; width:100%; height:100%; display:flex; flex-direction:column; border:1px solid rgba(0,229,255,0.40); border-radius:7px; overflow:hidden; }
             #map { flex:1; width:100%; min-height:240px; background:#050d1a; }
+
+            /* Filter Deep Navy untuk OpenStreetMap (100% Tanpa API Key) */
+            .dark-navy-tiles {
+                filter: invert(100%) hue-rotate(190deg) brightness(86%) contrast(95%) saturate(135%);
+            }
 
             @keyframes routeFlow {
                 from { stroke-dashoffset: 44; }
@@ -663,18 +668,37 @@ with col_mid:
         <script>
             var map = L.map('map', { center: [-5.75, 106.45], zoom: 8, doubleClickZoom: false });
 
-            var cartoDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; CARTO', subdomains: 'abcd', maxZoom: 19
+            // 1. Deep Navy Maritime (OpenStreetMap + Dark Navy CSS Filter — Tanpa API Key)
+            var osmDark = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap', maxZoom: 19, className: 'dark-navy-tiles'
             }).addTo(map);
-            var esriSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-                attribution: 'Esri Satellite', maxZoom: 19
+
+            // 2. Satellite Hybrid (Esri Imagery + Label Wilayah — Tanpa API Key)
+            var esriSat = L.layerGroup([
+                L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                    attribution: 'Esri Satellite', maxZoom: 19
+                }),
+                L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+                    maxZoom: 19
+                })
+            ]);
+
+            // 3. Ocean Bathymetry (Esri Ocean Base + Label Laut — Tanpa API Key)
+            var esriOcean = L.layerGroup([
+                L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}', {
+                    attribution: 'Esri Ocean', maxZoom: 13
+                }),
+                L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Reference/MapServer/tile/{z}/{y}/{x}', {
+                    maxZoom: 13
+                })
+            ]);
+
+            // 4. Street Map Light (OpenStreetMap Standar — Tanpa API Key)
+            var osmLight = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap', maxZoom: 19
             });
-            var esriOcean = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}', {
-                attribution: 'Esri Ocean', maxZoom: 13
-            });
-            var cartoVoyager = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; CARTO', subdomains: 'abcd', maxZoom: 19
-            });
+
+            // Overlay Rambu & Alur Pelayaran (OpenSeaMap — Tanpa API Key)
             var seaMarks = L.tileLayer('https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png', {
                 attribution: 'OpenSeaMap', maxZoom: 18, opacity: 0.9
             }).addTo(map);
@@ -708,10 +732,10 @@ with col_mid:
 
             L.control.layers(
                 {
-                    "🌑 Dark Command (Carto)": cartoDark,
-                    "🛰️ Satellite (Esri)": esriSat,
+                    "🌑 Deep Navy Maritime": osmDark,
+                    "🛰️ Satellite Hybrid (Esri)": esriSat,
                     "🌊 Ocean Bathymetry": esriOcean,
-                    "🗺️ Voyager Light": cartoVoyager
+                    "🗺️ Street Map (Light)": osmLight
                 },
                 {
                     "⚓ Rambu Laut (OpenSeaMap)": seaMarks,
