@@ -6,9 +6,9 @@ import pandas as pd
 import plotly.graph_objects as go
 
 # ==============================================================================
-# HELPER LOGO & FAVICON (OTOMATIS MEMBACA FILE 'logo.png' DI FOLDER YANG SAMA)
+# KONFIGURASI LOGO & FAVICON (OTOMATIS MEMBACA pertamina2.png)
 # ==============================================================================
-LOGO_FILE = "logo.png"
+LOGO_FILE = "pertamina2.png"
 HAS_LOGO = os.path.exists(LOGO_FILE)
 
 def get_logo_base64(filepath):
@@ -26,7 +26,7 @@ st.set_page_config(
 )
 
 # ==============================================================================
-# CUSTOM CSS: DARK COMMAND CENTER + FIX HEADER CLIPPING + ANIMASI CAHAYA
+# CUSTOM CSS: DARK COMMAND CENTER + FIX HEADER + ANIMASI CAHAYA
 # ==============================================================================
 st.markdown("""
 <style>
@@ -39,7 +39,6 @@ st.markdown("""
         background: rgba(5, 13, 26, 0.72);
         backdrop-filter: blur(6px);
     }
-    /* FIX: Tambah padding-top agar header tidak terpotong top bar Streamlit */
     .block-container {
         padding-top: 3.6rem !important;
         padding-bottom: 1.5rem !important;
@@ -48,7 +47,6 @@ st.markdown("""
         max-width: 100%;
     }
 
-    /* ==================== KEYFRAMES ANIMASI CAHAYA ==================== */
     @keyframes scanLine {
         0%   { left: -35%; opacity: 0; }
         15%  { opacity: 1; }
@@ -68,7 +66,6 @@ st.markdown("""
         50%      { box-shadow: inset 0 0 20px rgba(0, 229, 255, 0.20), 0 0 18px rgba(0, 229, 255, 0.30); }
     }
 
-    /* ==================== HEADER COMMAND CENTER + LOGO ==================== */
     .cmd-title-wrap {
         display: flex;
         align-items: center;
@@ -131,7 +128,6 @@ st.markdown("""
         margin-top: 4px;
     }
 
-    /* ==================== KPI CARDS INTERAKTIF ==================== */
     .kpi-box {
         position: relative;
         overflow: hidden;
@@ -192,7 +188,6 @@ st.markdown("""
         font-weight: 600;
     }
 
-    /* ==================== INFO CARDS & PANEL HEADERS ==================== */
     .info-card {
         position: relative;
         overflow: hidden;
@@ -377,12 +372,12 @@ full_df = df[df["Durasi"] > 2.0]
 potensi_rev = (full_df[rev_col].mean() * ann_calls) if len(full_df) > 0 else proj_rev
 
 # ==============================================================================
-# HEADER COMMAND CENTER DENGAN LOGO PERUSAHAAN
+# HEADER COMMAND CENTER DENGAN LOGO pertamina2.png
 # ==============================================================================
 logo_html = ""
 if HAS_LOGO:
     b64_logo = get_logo_base64(LOGO_FILE)
-    logo_html = f'<div class="cmd-logo-box"><img src="data:image/png;base64,{b64_logo}" alt="Company Logo"></div>'
+    logo_html = f'<div class="cmd-logo-box"><img src="data:image/png;base64,{b64_logo}" alt="Logo Perusahaan"></div>'
 
 st.markdown(f"""
 <div class="cmd-title-wrap">
@@ -433,7 +428,7 @@ FONT_CLR = "#cbd5e1"
 GRID_CLR = "rgba(0, 229, 255, 0.14)"
 
 # ==============================================================================
-# BARIS 2: ARMADA | PETA MARITIM UPGRADE (CARTO DARK + OPENSEAMAP + SATELIT) | KOMPOSISI
+# BARIS 2: ARMADA | PETA MARITIM UPGRADE | KOMPOSISI & REKOR
 # ==============================================================================
 col_left, col_mid, col_right = st.columns([1.15, 2.35, 1.15], gap="small")
 
@@ -487,7 +482,6 @@ with col_left:
 with col_mid:
     st.markdown('<div class="panel-header">🗺️ Live Maritime Route &amp; Fuel Calculator (NR OptiVoyage)</div>', unsafe_allow_html=True)
 
-    # Sumber peta baru: CartoDB Dark Matter (default), Esri Satellite, Esri Ocean, + Overlay OpenSeaMap
     map_html = """
     <!DOCTYPE html>
     <html>
@@ -505,21 +499,17 @@ with col_mid:
             .wrap { position:relative; width:100%; height:100%; display:flex; flex-direction:column; border:1px solid rgba(0,229,255,0.40); border-radius:7px; overflow:hidden; }
             #map { flex:1; width:100%; min-height:240px; background:#050d1a; }
 
-            /* Animasi aliran cahaya di sepanjang garis rute kapal */
             @keyframes routeFlow {
                 from { stroke-dashoffset: 44; }
                 to   { stroke-dashoffset: 0; }
             }
-            path.route-glow {
-                filter: drop-shadow(0 0 8px #00e5ff);
-            }
+            path.route-glow { filter: drop-shadow(0 0 8px #00e5ff); }
             path.route-pulse {
                 stroke-dasharray: 12, 10;
                 animation: routeFlow 1.1s linear infinite;
                 filter: drop-shadow(0 0 6px #ffffff);
             }
 
-            /* Styling control layer agar serasi dark theme */
             .leaflet-control-layers {
                 background: rgba(10, 22, 42, 0.92) !important;
                 color: #e2e8f0 !important;
@@ -673,24 +663,18 @@ with col_mid:
         <script>
             var map = L.map('map', { center: [-5.75, 106.45], zoom: 8, doubleClickZoom: false });
 
-            // Sumber Peta Premium (Bebas API Key)
             var cartoDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
                 attribution: '&copy; CARTO', subdomains: 'abcd', maxZoom: 19
             }).addTo(map);
-
             var esriSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
                 attribution: 'Esri Satellite', maxZoom: 19
             });
-
             var esriOcean = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}', {
                 attribution: 'Esri Ocean', maxZoom: 13
             });
-
             var cartoVoyager = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
                 attribution: '&copy; CARTO', subdomains: 'abcd', maxZoom: 19
             });
-
-            // Overlay Nautical Seamarks (Alur Pelayaran & Rambu Laut OpenSeaMap)
             var seaMarks = L.tileLayer('https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png', {
                 attribution: 'OpenSeaMap', maxZoom: 18, opacity: 0.9
             }).addTo(map);
@@ -926,4 +910,127 @@ with b1:
         font=dict(color=FONT_CLR, size=9.5),
         polar=dict(
             bgcolor="rgba(0,0,0,0)",
-            radialaxis=dict(visible=True, range=[0, 105], gridcolor=GRID_CLR,
+            radialaxis=dict(visible=True, range=[0, 105], gridcolor=GRID_CLR, tickfont=dict(size=8)),
+            angularaxis=dict(gridcolor=GRID_CLR, tickfont=dict(size=9.5))
+        ),
+        height=275, margin=dict(l=55, r=55, t=42, b=42), showlegend=False
+    )
+    st.plotly_chart(fig_radar, use_container_width=True, config={"displayModeBar": False})
+
+monthly = df.groupby(["Urutan", "Bulan"], as_index=False).agg(
+    Rev=(rev_col, "sum"), Calls=("Kapal", "count")
+).sort_values("Urutan")
+monthly["CumRev"] = monthly["Rev"].cumsum()
+
+with b2:
+    st.markdown('<div class="panel-header">📈 Tren Pendapatan Bulanan 2026 (Juta Rp)</div>', unsafe_allow_html=True)
+    max_m = (monthly["Rev"].max() / 1e6) * 1.22 if len(monthly) > 0 else 900
+    fig_line = go.Figure(go.Scatter(
+        x=monthly["Bulan"], y=monthly["Rev"] / 1e6,
+        mode="lines+markers+text",
+        line=dict(color="#00e5ff", width=2.8),
+        marker=dict(color="#38bdf8", size=7, line=dict(color="#fff", width=1.2)),
+        fill="tozeroy", fillcolor="rgba(0, 229, 255, 0.12)",
+        text=[f"{v/1e6:.0f}Jt" for v in monthly["Rev"]],
+        textposition="top center", textfont=dict(size=9, color="#7dd3fc"),
+        hovertemplate="<b>%{x} 2026</b><br>Revenue: Rp %{y:,.1f} Jt<extra></extra>"
+    ))
+    fig_line.update_layout(
+        paper_bgcolor=PLOT_BG, plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(color=FONT_CLR, size=10),
+        height=275, margin=dict(l=18, r=20, t=20, b=30),
+        xaxis=dict(gridcolor=GRID_CLR, automargin=True),
+        yaxis=dict(gridcolor=GRID_CLR, title="Juta Rp", range=[0, max_m], automargin=True)
+    )
+    st.plotly_chart(fig_line, use_container_width=True, config={"displayModeBar": False})
+
+with b3:
+    st.markdown('<div class="panel-header">🚀 Akumulasi Revenue YTD (Miliar Rp)</div>', unsafe_allow_html=True)
+    max_c = (monthly["CumRev"].max() / 1e9) * 1.22 if len(monthly) > 0 else 6
+    fig_cum = go.Figure(go.Bar(
+        x=monthly["Bulan"], y=monthly["CumRev"] / 1e9,
+        marker=dict(color="#2563eb", line=dict(color="#00e5ff", width=1)),
+        text=[f"{v/1e9:.2f}" for v in monthly["CumRev"]],
+        textposition="outside", textfont=dict(size=8.5, color="#cbd5e1"),
+        hovertemplate="<b>s.d. %{x} 2026</b><br>Kumulatif: Rp %{y:.2f} M<extra></extra>"
+    ))
+    fig_cum.update_layout(
+        paper_bgcolor=PLOT_BG, plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(color=FONT_CLR, size=10),
+        height=275, margin=dict(l=18, r=20, t=20, b=30),
+        xaxis=dict(gridcolor="rgba(0,0,0,0)", tickangle=0, automargin=True),
+        yaxis=dict(gridcolor=GRID_CLR, title="Miliar Rp", range=[0, max_c], automargin=True)
+    )
+    st.plotly_chart(fig_cum, use_container_width=True, config={"displayModeBar": False})
+
+# ==============================================================================
+# BARIS 4: MANAJEMEN DATA (INPUT CALL BARU + LIVE EDIT TABEL + EXPORT CSV)
+# ==============================================================================
+st.markdown('<div class="panel-header">✏️ Manajemen Data Pelayanan (Tambah, Edit &amp; Hapus Langsung)</div>', unsafe_allow_html=True)
+
+tab_edit, tab_add = st.tabs(["📝 Edit / Hapus Data Langsung", "➕ Tambah Call Baru (Auto-Hitung)"])
+
+with tab_edit:
+    st.caption("Klik dua kali pada sel untuk mengedit angka, klik tanda (+) di baris bawah untuk menambah, atau centang baris lalu tekan Delete untuk menghapus. Klik **Simpan & Update Dashboard** agar seluruh KPI dan grafik terbarui.")
+
+    edited_df = st.data_editor(
+        st.session_state.df_data,
+        num_rows="dynamic",
+        use_container_width=True,
+        height=340,
+        column_config={
+            "Bulan": st.column_config.SelectboxColumn("Bulan", options=MONTH_LIST, required=True),
+            "Kapal": st.column_config.SelectboxColumn("Nama Kapal", options=VESSEL_LIST, required=True),
+            "Durasi": st.column_config.NumberColumn("Durasi (Hari)", format="%.2f", min_value=0.1, step=0.05),
+            "HSD_L": st.column_config.NumberColumn("HSD (Liter)", format="%d", min_value=0, step=10),
+            "Harga_HSD": st.column_config.NumberColumn("Harga HSD (Rp/L)", format="Rp %d", min_value=0, step=100),
+            "Sewa": st.column_config.NumberColumn("Biaya Sewa (Rp)", format="Rp %d", min_value=0, step=100000),
+            "HSD_Rp": st.column_config.NumberColumn("Biaya HSD (Rp)", format="Rp %d", min_value=0, step=100000),
+            "PBBKB": st.column_config.NumberColumn("PBBKB 10% (Rp)", format="Rp %d", min_value=0, step=10000),
+        },
+        key="editor_armakung"
+    )
+
+    btn_c1, btn_c2, btn_c3 = st.columns([1.2, 1.2, 2])
+    with btn_c1:
+        if st.button("💾 Simpan & Update Dashboard", type="primary", use_container_width=True):
+            st.session_state.df_data = edited_df.dropna(subset=["Bulan", "Kapal"]).reset_index(drop=True)
+            st.success("Dashboard berhasil diperbarui!")
+            st.rerun()
+    with btn_c2:
+        st.download_button(
+            "⬇️ Unduh Data Terbaru (CSV)",
+            data=st.session_state.df_data.to_csv(index=False).encode("utf-8"),
+            file_name="Data_ARMAKUNG_2026_Updated.csv",
+            mime="text/csv",
+            use_container_width=True
+        )
+
+with tab_add:
+    st.caption("Masukkan parameter operasional kapal. Biaya Sewa (Rp 49.000.000/hari), Biaya HSD, dan PBBKB 10% akan dihitung otomatis.")
+    with st.form("form_tambah_call", clear_on_submit=True):
+        f1, f2, f3, f4 = st.columns(4)
+        in_bulan = f1.selectbox("Bulan", MONTH_LIST, index=10)
+        in_kapal = f2.selectbox("Nama Kapal", VESSEL_LIST)
+        in_del = f3.text_input("Tgl Delivery", value="10/11/2026")
+        in_red = f4.text_input("Tgl Re-delivery", value="13/11/2026")
+
+        f5, f6, f7, f8 = st.columns(4)
+        in_dur = f5.number_input("Durasi (Hari)", min_value=0.1, max_value=10.0, value=3.00, step=0.05)
+        in_hsd_l = f6.number_input("Konsumsi HSD (Liter)", min_value=0, max_value=20000, value=7800, step=100)
+        in_hrg = f7.number_input("Harga HSD (Rp/Liter)", min_value=0, max_value=50000, value=17755, step=100)
+        in_tarif = f8.number_input("Tarif Sewa (Rp/Hari)", min_value=0, max_value=100000000, value=49000000, step=500000)
+
+        if st.form_submit_button("➕ Tambahkan Call ke Dashboard", type="primary", use_container_width=True):
+            calc_sewa = round(in_dur * in_tarif)
+            calc_hsd = round(in_hsd_l * in_hrg)
+            calc_pbbkb = round(calc_hsd * 0.10)
+            new_row = pd.DataFrame([{
+                "Bulan": in_bulan, "Kapal": in_kapal,
+                "Delivery": in_del, "Redelivery": in_red,
+                "Durasi": in_dur, "HSD_L": in_hsd_l, "Harga_HSD": in_hrg,
+                "Sewa": calc_sewa, "HSD_Rp": calc_hsd, "PBBKB": calc_pbbkb
+            }])
+            st.session_state.df_data = pd.concat([st.session_state.df_data, new_row], ignore_index=True)
+            st.success(f"Call baru ({in_kapal} - {in_bulan}) berhasil ditambahkan!")
+            st.rerun()
