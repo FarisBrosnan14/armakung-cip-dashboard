@@ -1031,7 +1031,7 @@ with tab_edit:
         )
 
 with tab_add:
-    st.caption("Masukkan parameter operasional kapal. Biaya Sewa (Rp 49.000.000/hari), Biaya HSD, dan PBBKB 10% akan dihitung otomatis.")
+    st.caption("Masukkan parameter operasional kapal. Biaya Sewa, Biaya HSD, dan PBBKB 10% akan dihitung otomatis.")
     with st.form("form_tambah_call", clear_on_submit=True):
         f1, f2, f3, f4 = st.columns(4)
         in_bulan = f1.selectbox("Bulan", MONTH_LIST, index=10)
