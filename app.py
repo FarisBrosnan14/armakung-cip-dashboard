@@ -384,7 +384,7 @@ st.markdown(f"""
     {logo_html}
     <div>
         <div class="cmd-title">ARMAKUNG MARITIME MONITORING &amp; FUEL COMMAND CENTER</div>
-        <div class="cmd-subtitle">PT NUSANTARA REGAS &bull</div>
+        <div class="cmd-subtitle">PT NUSANTARA REGAS </div>
     </div>
 </div>
 """, unsafe_allow_html=True)
