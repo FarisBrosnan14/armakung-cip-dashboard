@@ -35,18 +35,76 @@ st.set_page_config(
 )
 
 # ==============================================================================
-# CUSTOM CSS: DARK COMMAND CENTER + FIX HEADER + ANIMASI CAHAYA + RESPONSIVE
+# CUSTOM CSS: DYNAMIC SLOW GRADIENT + LIVING ANIMATIONS + RESPONSIVE
 # ==============================================================================
 st.markdown("""
 <style>
+    /* ==================== KEYFRAMES ANIMASI HIDUP & GRADASI PELAN ==================== */
+    @keyframes auroraBg {
+        0%   { background-position: 0% 50%; }
+        25%  { background-position: 50% 100%; }
+        50%  { background-position: 100% 50%; }
+        75%  { background-position: 50% 0%; }
+        100% { background-position: 0% 50%; }
+    }
+    @keyframes titleGradientFlow {
+        0%   { background-position: 0% 50%; }
+        50%  { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    @keyframes cardGradientDrift {
+        0%   { background-position: 0% 0%; }
+        50%  { background-position: 100% 100%; }
+        100% { background-position: 0% 0%; }
+    }
+    @keyframes scanLine {
+        0%   { left: -38%; opacity: 0; }
+        15%  { opacity: 1; }
+        85%  { opacity: 1; }
+        100% { left: 108%; opacity: 0; }
+    }
+    @keyframes ambientGlow {
+        0%, 100% { opacity: 0.45; transform: scale(1); }
+        50%      { opacity: 0.85; transform: scale(1.06); }
+    }
+    @keyframes amberGlow {
+        0%, 100% { text-shadow: 0 0 10px rgba(255, 123, 58, 0.45); }
+        50%      { text-shadow: 0 0 22px rgba(255, 145, 77, 0.92), 0 0 34px rgba(255, 123, 58, 0.40); }
+    }
+    @keyframes borderBreath {
+        0%, 100% {
+            border-color: rgba(0, 229, 255, 0.42);
+            box-shadow: inset 0 0 14px rgba(0, 229, 255, 0.08), 0 0 12px rgba(0, 229, 255, 0.14);
+        }
+        50% {
+            border-color: rgba(56, 232, 255, 0.82);
+            box-shadow: inset 0 0 24px rgba(0, 229, 255, 0.20), 0 0 24px rgba(0, 229, 255, 0.30);
+        }
+    }
+    @keyframes statusPulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50%      { transform: scale(1.008); opacity: 0.96; }
+    }
+
+    /* Background utama dengan gradasi maritim bergerak dinamis dan pelan */
     .stApp {
-        background: radial-gradient(circle at 50% 0%, #102a4e 0%, #050d1a 68%);
+        background: linear-gradient(
+            135deg,
+            #030914 0%,
+            #091c38 22%,
+            #0f2d56 45%,
+            #072540 68%,
+            #0c1b36 85%,
+            #040b18 100%
+        );
+        background-size: 320% 320%;
+        animation: auroraBg 22s ease-in-out infinite;
         color: #e2e8f0;
         -webkit-tap-highlight-color: transparent;
     }
     header[data-testid="stHeader"] {
-        background: rgba(5, 13, 26, 0.72);
-        backdrop-filter: blur(6px);
+        background: rgba(5, 13, 26, 0.68);
+        backdrop-filter: blur(8px);
     }
     .block-container {
         padding-top: 3.6rem !important;
@@ -56,25 +114,7 @@ st.markdown("""
         max-width: 100%;
     }
 
-    @keyframes scanLine {
-        0%   { left: -35%; opacity: 0; }
-        15%  { opacity: 1; }
-        85%  { opacity: 1; }
-        100% { left: 105%; opacity: 0; }
-    }
-    @keyframes neonPulse {
-        0%, 100% { text-shadow: 0 0 12px rgba(0, 229, 255, 0.55), 0 0 24px rgba(0, 229, 255, 0.25); }
-        50%      { text-shadow: 0 0 20px rgba(0, 229, 255, 0.95), 0 0 38px rgba(56, 189, 248, 0.45); }
-    }
-    @keyframes amberGlow {
-        0%, 100% { text-shadow: 0 0 10px rgba(255, 123, 58, 0.45); }
-        50%      { text-shadow: 0 0 18px rgba(255, 123, 58, 0.85), 0 0 28px rgba(255, 123, 58, 0.35); }
-    }
-    @keyframes borderBreath {
-        0%, 100% { box-shadow: inset 0 0 14px rgba(0, 229, 255, 0.10), 0 0 10px rgba(0, 229, 255, 0.14); }
-        50%      { box-shadow: inset 0 0 20px rgba(0, 229, 255, 0.20), 0 0 18px rgba(0, 229, 255, 0.30); }
-    }
-
+    /* ==================== HEADER COMMAND CENTER ==================== */
     .cmd-title-wrap {
         display: flex;
         align-items: center;
@@ -82,37 +122,41 @@ st.markdown("""
         gap: 16px;
         flex-wrap: wrap;
         text-align: center;
-        padding: 0.5rem 0.5rem 0.9rem 0.5rem;
+        padding: 0.6rem 0.8rem 1rem 0.8rem;
         border-bottom: 1.5px solid rgba(0, 229, 255, 0.35);
         margin-bottom: 1rem;
         position: relative;
         overflow: hidden;
+        background: linear-gradient(90deg, rgba(0,229,255,0.03), rgba(56,189,248,0.10), rgba(0,229,255,0.03));
+        background-size: 250% 100%;
+        animation: titleGradientFlow 14s ease-in-out infinite;
+        border-radius: 10px 10px 0 0;
     }
     .cmd-title-wrap::after {
         content: "";
         position: absolute;
         bottom: 0;
-        left: -35%;
-        width: 35%;
+        left: -38%;
+        width: 38%;
         height: 2.5px;
-        background: linear-gradient(90deg, transparent, #00e5ff, #ffffff, #00e5ff, transparent);
-        box-shadow: 0 0 12px #00e5ff;
-        animation: scanLine 4.2s ease-in-out infinite;
+        background: linear-gradient(90deg, transparent, #00e5ff, #ffffff, #38bdf8, transparent);
+        box-shadow: 0 0 14px #00e5ff;
+        animation: scanLine 4.8s ease-in-out infinite;
     }
     .cmd-logo-box {
-        background: rgba(255, 255, 255, 0.94);
+        background: rgba(255, 255, 255, 0.95);
         padding: 6px 12px;
         border-radius: 8px;
-        border: 1.5px solid rgba(0, 229, 255, 0.75);
-        box-shadow: 0 0 14px rgba(0, 229, 255, 0.35);
+        border: 1.5px solid rgba(0, 229, 255, 0.80);
+        box-shadow: 0 0 16px rgba(0, 229, 255, 0.38);
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: transform 0.25s ease, box-shadow 0.25s ease;
+        transition: transform 0.28s ease, box-shadow 0.28s ease;
     }
     .cmd-logo-box:hover {
-        transform: scale(1.04);
-        box-shadow: 0 0 22px rgba(0, 229, 255, 0.65);
+        transform: scale(1.06) rotate(-1deg);
+        box-shadow: 0 0 26px rgba(0, 229, 255, 0.72);
     }
     .cmd-logo-box img {
         height: clamp(32px, 3.6vw, 46px);
@@ -124,29 +168,41 @@ st.markdown("""
         font-family: 'Segoe UI', sans-serif;
         font-size: clamp(1.1rem, 2.05vw, 1.9rem);
         font-weight: 800;
-        letter-spacing: 1.6px;
-        color: #38e8ff;
-        animation: neonPulse 3.5s ease-in-out infinite;
+        letter-spacing: 1.8px;
+        background: linear-gradient(90deg, #38e8ff, #ffffff, #60a5fa, #00e5ff, #7dd3fc);
+        background-size: 260% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: titleGradientFlow 8s ease-in-out infinite;
+        filter: drop-shadow(0 0 12px rgba(0, 229, 255, 0.45));
         margin: 0;
         line-height: 1.25;
     }
     .cmd-subtitle {
         font-size: clamp(0.66rem, 0.95vw, 0.82rem);
         color: #94a3b8;
-        letter-spacing: 0.9px;
+        letter-spacing: 1.4px;
         margin-top: 4px;
     }
 
+    /* ==================== KPI CARDS DENGAN GRADASI BERGERAK ==================== */
     .kpi-box {
         position: relative;
         overflow: hidden;
-        background: linear-gradient(135deg, rgba(13, 35, 66, 0.88), rgba(7, 20, 40, 0.94));
+        background: linear-gradient(
+            125deg,
+            rgba(10, 32, 64, 0.90),
+            rgba(18, 52, 96, 0.86),
+            rgba(7, 22, 46, 0.94),
+            rgba(12, 42, 78, 0.88)
+        );
+        background-size: 260% 260%;
         border: 1px solid rgba(0, 229, 255, 0.50);
-        border-radius: 7px;
-        padding: 0.8rem 1.05rem;
-        margin-bottom: 0.7rem;
+        border-radius: 8px;
+        padding: 0.85rem 1.1rem;
+        margin-bottom: 0.75rem;
         cursor: pointer;
-        animation: borderBreath 4.5s ease-in-out infinite;
+        animation: cardGradientDrift 14s ease-in-out infinite, borderBreath 5s ease-in-out infinite;
         transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
                     border-color 0.28s ease,
                     box-shadow 0.28s ease;
@@ -158,14 +214,14 @@ st.markdown("""
         left: -120%;
         width: 75%;
         height: 100%;
-        background: linear-gradient(115deg, transparent 20%, rgba(0, 229, 255, 0.22) 50%, transparent 80%);
-        transition: left 0.6s ease;
+        background: linear-gradient(115deg, transparent 20%, rgba(0, 229, 255, 0.28) 50%, transparent 80%);
+        transition: left 0.65s ease;
         pointer-events: none;
     }
     .kpi-box:hover, .kpi-box:active {
-        transform: translateY(-4px) scale(1.015);
+        transform: translateY(-5px) scale(1.018);
         border-color: #00e5ff;
-        box-shadow: inset 0 0 22px rgba(0, 229, 255, 0.24), 0 8px 24px rgba(0, 229, 255, 0.35);
+        box-shadow: inset 0 0 26px rgba(0, 229, 255, 0.28), 0 10px 28px rgba(0, 229, 255, 0.38);
     }
     .kpi-box:hover::before, .kpi-box:active::before {
         left: 140%;
@@ -186,10 +242,10 @@ st.markdown("""
         margin-top: 4px;
     }
     .kpi-val {
-        font-size: clamp(1.35rem, 1.9vw, 1.8rem);
+        font-size: clamp(1.35rem, 1.9vw, 1.85rem);
         font-weight: 800;
         color: #ff7b3a;
-        animation: amberGlow 3s ease-in-out infinite;
+        animation: amberGlow 3.2s ease-in-out infinite;
     }
     .kpi-unit {
         font-size: clamp(0.72rem, 0.85vw, 0.82rem);
@@ -197,19 +253,22 @@ st.markdown("""
         font-weight: 600;
     }
 
+    /* ==================== INFO CARDS & PANEL HEADERS ==================== */
     .info-card {
         position: relative;
         overflow: hidden;
-        background: rgba(8, 22, 44, 0.78);
-        border: 1px solid rgba(0, 229, 255, 0.32);
-        border-radius: 7px;
+        background: linear-gradient(135deg, rgba(8, 22, 44, 0.82), rgba(14, 38, 72, 0.78), rgba(6, 18, 38, 0.86));
+        background-size: 240% 240%;
+        animation: cardGradientDrift 18s ease-in-out infinite;
+        border: 1px solid rgba(0, 229, 255, 0.34);
+        border-radius: 8px;
         padding: 11px;
         transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
     }
     .info-card:hover, .info-card:active {
         transform: translateY(-3px);
         border-color: #00e5ff;
-        box-shadow: 0 6px 20px rgba(0, 229, 255, 0.28);
+        box-shadow: 0 6px 22px rgba(0, 229, 255, 0.30);
     }
     .info-row {
         display: flex;
@@ -220,27 +279,30 @@ st.markdown("""
         transition: background 0.2s ease, padding-left 0.2s ease;
     }
     .info-row:hover, .info-row:active {
-        background: rgba(0, 229, 255, 0.10);
+        background: rgba(0, 229, 255, 0.12);
         padding-left: 8px;
     }
     .info-row:last-child { border-bottom: none; }
 
     .panel-header {
-        background: linear-gradient(90deg, rgba(0, 229, 255, 0.20), transparent);
+        background: linear-gradient(90deg, rgba(0, 229, 255, 0.24), rgba(56, 189, 248, 0.08), transparent);
+        background-size: 220% 100%;
+        animation: titleGradientFlow 12s ease-in-out infinite;
         border-left: 3px solid #00e5ff;
-        padding: 5px 10px;
+        padding: 6px 10px;
         font-size: clamp(0.82rem, 1vw, 0.94rem);
         font-weight: 700;
         color: #67e8f9;
         letter-spacing: 0.4px;
         margin-bottom: 6px;
         margin-top: 4px;
-        transition: border-left-width 0.2s ease, background 0.25s ease, color 0.2s ease;
+        border-radius: 0 5px 5px 0;
+        transition: border-left-width 0.2s ease, color 0.2s ease, box-shadow 0.25s ease;
     }
     .panel-header:hover {
         border-left-width: 6px;
-        background: linear-gradient(90deg, rgba(0, 229, 255, 0.34), transparent);
         color: #ffffff;
+        box-shadow: inset 0 0 12px rgba(0, 229, 255, 0.18);
     }
 
     /* Status Alert Card untuk Pengecekan Jadwal STS */
@@ -250,36 +312,37 @@ st.markdown("""
         margin-top: 8px;
         margin-bottom: 10px;
         font-size: 0.92rem;
-        line-height: 1.5;
+        line-height: 1.55;
+        animation: statusPulse 4s ease-in-out infinite;
     }
     .status-safe {
-        background: rgba(16, 185, 129, 0.14);
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.16), rgba(6, 78, 59, 0.24));
         border: 1.5px solid #10b981;
         color: #d1fae5;
-        box-shadow: 0 0 16px rgba(16, 185, 129, 0.2);
+        box-shadow: 0 0 18px rgba(16, 185, 129, 0.22);
     }
     .status-warn {
-        background: rgba(245, 158, 11, 0.15);
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.18), rgba(120, 53, 15, 0.26));
         border: 1.5px solid #f59e0b;
         color: #fef3c7;
-        box-shadow: 0 0 16px rgba(245, 158, 11, 0.22);
+        box-shadow: 0 0 18px rgba(245, 158, 11, 0.26);
     }
     .status-danger {
-        background: rgba(239, 68, 68, 0.16);
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.20), rgba(127, 29, 29, 0.28));
         border: 1.5px solid #ef4444;
         color: #fee2e2;
-        box-shadow: 0 0 16px rgba(239, 68, 68, 0.25);
+        box-shadow: 0 0 20px rgba(239, 68, 68, 0.30);
     }
 
     div[data-testid="stPlotlyChart"] {
-        border: 1px solid rgba(0, 229, 255, 0.22);
-        border-radius: 7px;
+        border: 1px solid rgba(0, 229, 255, 0.24);
+        border-radius: 8px;
         overflow: hidden;
         transition: border-color 0.28s ease, box-shadow 0.28s ease, transform 0.25s ease;
     }
     div[data-testid="stPlotlyChart"]:hover {
-        border-color: rgba(0, 229, 255, 0.78);
-        box-shadow: 0 0 18px rgba(0, 229, 255, 0.26);
+        border-color: rgba(0, 229, 255, 0.82);
+        box-shadow: 0 0 22px rgba(0, 229, 255, 0.30);
         transform: translateY(-2px);
     }
 
@@ -288,7 +351,7 @@ st.markdown("""
         transition: transform 0.18s ease, box-shadow 0.25s ease !important;
     }
     .stButton > button:hover, .stDownloadButton > button:hover {
-        box-shadow: 0 0 14px rgba(0, 229, 255, 0.45) !important;
+        box-shadow: 0 0 16px rgba(0, 229, 255, 0.50) !important;
         transform: translateY(-1px) !important;
     }
     .stButton > button:active, .stDownloadButton > button:active {
@@ -313,7 +376,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==============================================================================
-# HELPER PARSER PDF JADWAL STS FSRU NR & PENGECEKAN BENTROK
+# HELPER PARSER PDF CARGO SCHEDULE (FORMAT NUSANTARA REGAS) & CEK BENTROK
 # ==============================================================================
 MONTH_MAP_ID_EN = {
     "jan": 1, "januari": 1, "january": 1,
@@ -330,14 +393,21 @@ MONTH_MAP_ID_EN = {
     "des": 12, "desember": 12, "dec": 12, "december": 12,
 }
 
-def extract_sts_from_pdf(uploaded_file, default_year=2026):
-    """Membaca tanggal jadwal STS dari file PDF (mendukung format tanggal teks maupun tabel)."""
+def extract_sts_from_pdf(uploaded_file, default_year=2026, default_sts_days=3):
+    """
+    Membaca jadwal STS dari PDF Cargo Schedule PT Nusantara Regas (format kolom ETA DD-Mon
+    seperti '06-Nov', '04-Dec' beserta nama LNGC & Cargo No.) maupun format tanggal standar.
+    """
     if not HAS_PDFPLUMBER:
         return [], "Library `pdfplumber` belum terpasang. Pastikan `pdfplumber` ada di requirements.txt."
 
     extracted = []
-    seen_ranges = set()
+    seen_keys = set()
     raw_text_all = ""
+    sts_span = max(0, int(default_sts_days) - 1)
+
+    eta_dd_mon_pat = re.compile(r'\b(\d{1,2})[-/\s]([A-Za-z]{3,9})\b')
+    cargo_no_pat = re.compile(r'\b([A-Z]{2}\d{2,3})\b')
 
     try:
         with pdfplumber.open(io.BytesIO(uploaded_file.getvalue())) as pdf:
@@ -345,48 +415,102 @@ def extract_sts_from_pdf(uploaded_file, default_year=2026):
                 txt = page.extract_text() or ""
                 raw_text_all += f"\n--- Page {page_idx} ---\n" + txt
 
-                # 1. Deteksi rentang tanggal: DD/MM/YYYY - DD/MM/YYYY atau DD-MM-YYYY s/d DD-MM-YYYY
-                range_pat = re.compile(
-                    r'(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})\s*(?:-|–|s/d|sd|to|hingga)\s*(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})',
-                    re.IGNORECASE
-                )
-                for m in range_pat.finditer(txt):
-                    d1, m1, y1, d2, m2, y2 = map(int, m.groups())
-                    y1 = y1 + 2000 if y1 < 100 else y1
-                    y2 = y2 + 2000 if y2 < 100 else y2
-                    try:
-                        dt1, dt2 = date(y1, m1, d1), date(y2, m2, d2)
-                        if dt2 < dt1:
-                            dt1, dt2 = dt2, dt1
-                        key = (dt1, dt2)
-                        if key not in seen_ranges:
-                            seen_ranges.add(key)
-                            extracted.append({
-                                "Tanggal_Mulai": dt1,
-                                "Tanggal_Selesai": dt2,
-                                "Keterangan": f"STS FSRU NR (Scan PDF Hal. {page_idx})",
-                                "Sumber": uploaded_file.name
-                            })
-                    except ValueError:
-                        pass
+                yr_match = re.search(r'\b(202\d|203\d)\b', txt)
+                doc_year = int(yr_match.group(1)) if yr_match else int(default_year)
 
-                # 2. Deteksi rentang teks bulan: "10 - 12 Nov 2026" atau "10-12 November 2026"
-                text_range_pat = re.compile(
-                    r'(\d{1,2})\s*(?:-|–|s/d|sd|to)\s*(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})',
-                    re.IGNORECASE
-                )
-                for m in text_range_pat.finditer(txt):
-                    d1, d2, m_str, y_str = m.groups()
-                    mon = MONTH_MAP_ID_EN.get(m_str.lower())
-                    if mon:
+                # --- METODE 1: Baca Tabel Terstruktur (Cargo Schedule NR) ---
+                tables = page.extract_tables() or []
+                for tbl in tables:
+                    if not tbl or len(tbl) < 2:
+                        continue
+                    eta_col, lngc_col, cargo_col = None, None, None
+                    for row in tbl[:5]:
+                        for c_idx, cell in enumerate(row):
+                            s = str(cell or "").strip().upper()
+                            if s in ("ETA", "ΕΤΑ") or "ETA" in s:
+                                eta_col = c_idx
+                            elif "LNGC" in s or "VESSEL" in s:
+                                lngc_col = c_idx
+                            elif "CARGO" in s:
+                                cargo_col = c_idx
+
+                    for row in tbl:
+                        if not row:
+                            continue
+                        row_str = " ".join(str(c or "") for c in row)
+                        low_row = row_str.lower()
+                        if "based on mom" in low_row or "delivery status" in low_row:
+                            continue
+
+                        cand_cols = [eta_col] if eta_col is not None and eta_col < len(row) else list(range(min(7, len(row))))
+                        for c_idx in cand_cols:
+                            cell_val = str(row[c_idx] or "").strip()
+                            m = eta_dd_mon_pat.search(cell_val)
+                            if m:
+                                d_str, mon_str = m.groups()
+                                mon_num = MONTH_MAP_ID_EN.get(mon_str.lower())
+                                if not mon_num:
+                                    continue
+                                d_num = int(d_str)
+                                if not (1 <= d_num <= 31):
+                                    continue
+                                try:
+                                    dt_start = date(doc_year, mon_num, d_num)
+                                    dt_end = dt_start + timedelta(days=sts_span)
+                                except ValueError:
+                                    continue
+
+                                vessel = ""
+                                if lngc_col is not None and lngc_col < len(row):
+                                    vessel = " ".join(str(row[lngc_col] or "").split())
+                                c_no = ""
+                                if cargo_col is not None and cargo_col < len(row):
+                                    c_no = " ".join(str(row[cargo_col] or "").split())
+                                if not c_no:
+                                    cm = cargo_no_pat.search(row_str)
+                                    c_no = cm.group(1) if cm else ""
+
+                                parts = ["STS"]
+                                if vessel and vessel.upper() != "LNGC":
+                                    parts.append(vessel)
+                                if c_no and "CARGO" not in c_no.upper():
+                                    parts.append(f"({c_no})")
+                                ket = " ".join(parts) if len(parts) > 1 else f"STS FSRU NR (Hal. {page_idx})"
+
+                                key = (dt_start, dt_end, c_no)
+                                if key not in seen_keys:
+                                    seen_keys.add(key)
+                                    extracted.append({
+                                        "Tanggal_Mulai": dt_start,
+                                        "Tanggal_Selesai": dt_end,
+                                        "Keterangan": ket,
+                                        "Sumber": uploaded_file.name
+                                    })
+                                break
+
+                # --- METODE 2: Scan Baris Teks (Fallback jika PDF tidak terbaca sebagai grid tabel) ---
+                for raw_line in txt.splitlines():
+                    line = " ".join(raw_line.split())
+                    if not line:
+                        continue
+                    low = line.lower()
+                    if any(skip in low for skip in ["based on mom", "delivery status", "cargo schedule", "created by", "note:"]):
+                        continue
+
+                    range_pat = re.compile(
+                        r'(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})\s*(?:-|–|s/d|sd|to|hingga)\s*(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})',
+                        re.IGNORECASE
+                    )
+                    for m in range_pat.finditer(line):
+                        d1, m1, y1, d2, m2, y2 = map(int, m.groups())
+                        y1 = y1 + 2000 if y1 < 100 else y1
+                        y2 = y2 + 2000 if y2 < 100 else y2
                         try:
-                            dt1 = date(int(y_str), mon, int(d1))
-                            dt2 = date(int(y_str), mon, int(d2))
+                            dt1, dt2 = date(y1, m1, d1), date(y2, m2, d2)
                             if dt2 < dt1:
                                 dt1, dt2 = dt2, dt1
-                            key = (dt1, dt2)
-                            if key not in seen_ranges:
-                                seen_ranges.add(key)
+                            if not any(k[0] == dt1 for k in seen_keys):
+                                seen_keys.add((dt1, dt2, ""))
                                 extracted.append({
                                     "Tanggal_Mulai": dt1,
                                     "Tanggal_Selesai": dt2,
@@ -396,105 +520,43 @@ def extract_sts_from_pdf(uploaded_file, default_year=2026):
                         except ValueError:
                             pass
 
-                # 3. Deteksi tanggal tunggal: DD/MM/YYYY atau DD-MM-YYYY
-                single_num_pat = re.compile(r'(?<!\d)(\d{1,2})[/-](\d{1,2})[/-](20\d{2})(?!\d)')
-                for m in single_num_pat.finditer(txt):
-                    d1, m1, y1 = map(int, m.groups())
-                    try:
-                        dt = date(y1, m1, d1)
-                        already_covered = any(r[0] <= dt <= r[1] for r in seen_ranges)
-                        if not already_covered:
-                            key = (dt, dt)
-                            seen_ranges.add(key)
-                            extracted.append({
-                                "Tanggal_Mulai": dt,
-                                "Tanggal_Selesai": dt,
-                                "Keterangan": f"STS FSRU NR (Scan PDF Hal. {page_idx})",
-                                "Sumber": uploaded_file.name
-                            })
-                    except ValueError:
-                        pass
-
-                # 4. Deteksi tanggal tunggal format teks: "21 September 2026" atau "21 Sep 2026"
-                single_txt_pat = re.compile(r'(?<!\d)(\d{1,2})\s+([A-Za-z]+)\s+(20\d{2})', re.IGNORECASE)
-                for m in single_txt_pat.finditer(txt):
-                    d1, m_str, y_str = m.groups()
-                    mon = MONTH_MAP_ID_EN.get(m_str.lower())
-                    if mon:
+                    for m in eta_dd_mon_pat.finditer(line):
+                        d_str, mon_str = m.groups()
+                        mon_num = MONTH_MAP_ID_EN.get(mon_str.lower())
+                        if not mon_num:
+                            continue
+                        d_num = int(d_str)
+                        if not (1 <= d_num <= 31):
+                            continue
                         try:
-                            dt = date(int(y_str), mon, int(d1))
-                            already_covered = any(r[0] <= dt <= r[1] for r in seen_ranges)
-                            if not already_covered:
-                                key = (dt, dt)
-                                seen_ranges.add(key)
-                                extracted.append({
-                                    "Tanggal_Mulai": dt,
-                                    "Tanggal_Selesai": dt,
-                                    "Keterangan": f"STS FSRU NR (Scan PDF Hal. {page_idx})",
-                                    "Sumber": uploaded_file.name
-                                })
+                            dt_start = date(doc_year, mon_num, d_num)
+                            dt_end = dt_start + timedelta(days=sts_span)
                         except ValueError:
-                            pass
+                            continue
 
-                # 5. Deteksi format Cargo Schedule matriks kalender (baris berisi H / STS / D+E / S+DE)
-                tables = page.extract_tables() or []
-                for tbl in tables:
-                    if not tbl or len(tbl) < 2:
-                        continue
-                    tbl_month = None
-                    for row in tbl[:3]:
-                        for cell in row:
-                            if cell:
-                                for tok in re.findall(r'[A-Za-z]+', str(cell)):
-                                    if tok.lower() in MONTH_MAP_ID_EN:
-                                        tbl_month = MONTH_MAP_ID_EN[tok.lower()]
-                                        break
-                    if not tbl_month:
-                        for tok in re.findall(r'[A-Za-z]+', txt):
-                            if tok.lower() in MONTH_MAP_ID_EN:
-                                tbl_month = MONTH_MAP_ID_EN[tok.lower()]
-                                break
+                        cm = cargo_no_pat.search(line)
+                        c_no = cm.group(1) if cm else ""
+                        vm = re.match(r'^\d+\s+([A-Za-z0-9\.\-\s]+?)\s+(?:Tangguh|Bontang|Donggi|Badak|PLN|PG|DES|FOB)', line, re.IGNORECASE)
+                        vessel = vm.group(1).strip() if vm else ""
 
-                    day_col_map = {}
-                    for row in tbl[:4]:
-                        nums_found = {}
-                        for c_idx, cell in enumerate(row):
-                            if cell and str(cell).strip().isdigit():
-                                val = int(str(cell).strip())
-                                if 1 <= val <= 31:
-                                    nums_found[c_idx] = val
-                        if len(nums_found) >= 10:
-                            day_col_map = nums_found
-                            break
+                        if any(k[0] == dt_start and (k[2] == c_no or not c_no) for k in seen_keys):
+                            continue
 
-                    if tbl_month and day_col_map:
-                        for row in tbl:
-                            sts_days = []
-                            cargo_label = ""
-                            for c_idx, cell in enumerate(row):
-                                s_cell = str(cell or "").strip().upper()
-                                if c_idx < min(day_col_map.keys()) and s_cell and len(s_cell) >= 3:
-                                    if "NR" in s_cell or "TG" in s_cell or "LNG" in s_cell:
-                                        cargo_label = s_cell
-                                if c_idx in day_col_map:
-                                    if any(k in s_cell for k in ["STS", "S+DE", "D+E", "BERTH", "DISCH"]) or s_cell == "H":
-                                        sts_days.append(day_col_map[c_idx])
-                            if sts_days:
-                                sts_days = sorted(set(sts_days))
-                                try:
-                                    dt1 = date(default_year, tbl_month, sts_days[0])
-                                    dt2 = date(default_year, tbl_month, sts_days[-1])
-                                    key = (dt1, dt2)
-                                    if key not in seen_ranges:
-                                        seen_ranges.add(key)
-                                        extracted.append({
-                                            "Tanggal_Mulai": dt1,
-                                            "Tanggal_Selesai": dt2,
-                                            "Keterangan": f"STS Cargo {cargo_label or 'FSRU NR'} (Matriks PDF)",
-                                            "Sumber": uploaded_file.name
-                                        })
-                                except ValueError:
-                                    pass
+                        parts = ["STS"]
+                        if vessel:
+                            parts.append(vessel)
+                        if c_no:
+                            parts.append(f"({c_no})")
+                        ket = " ".join(parts) if len(parts) > 1 else f"STS FSRU NR (Hal. {page_idx})"
+
+                        seen_keys.add((dt_start, dt_end, c_no))
+                        extracted.append({
+                            "Tanggal_Mulai": dt_start,
+                            "Tanggal_Selesai": dt_end,
+                            "Keterangan": ket,
+                            "Sumber": uploaded_file.name
+                        })
+
     except Exception as e:
         return [], f"Gagal memindai PDF: {e}"
 
@@ -537,7 +599,7 @@ def check_sts_conflict(req_start: date, req_end: date, sts_df: pd.DataFrame):
 
 
 # ==============================================================================
-# DATA AKTUAL 2026 (JANUARI – OKTOBER 2026, 19 CALL) & DEFAULT JADWAL STS NR
+# DATA AKTUAL 2026 (JAN–OKT 2026, 19 CALL) & JADWAL CARGO STS NOV–DES 2026
 # ==============================================================================
 MONTH_ORDER = {
     "Jan": 1, "Feb": 2, "Mar": 3, "Apr": 4, "Mei": 5, "Jun": 6,
@@ -568,11 +630,16 @@ INITIAL_DATA = [
     {"Bulan": "Okt", "Kapal": "TB. MEDELIN PARTNER", "Delivery": "23/10/2026", "Redelivery": "25/10/2026", "Durasi": 1.60, "HSD_L": 4050, "Harga_HSD": 17755, "Sewa": 78604167, "HSD_Rp": 71907750, "PBBKB": 6907275},
 ]
 
+# Baseline jadwal dari Cargo Schedule Nov - Dec 2026 (MoM 16 Nov 2026)
 INITIAL_STS_SCHEDULE = [
-    {"Tanggal_Mulai": date(2026, 11, 27), "Tanggal_Selesai": date(2026, 11, 29), "Keterangan": "STS LNGC Cargo Nov #3 - FSRU NR 1", "Sumber": "Default Sistem"},
-    {"Tanggal_Mulai": date(2026, 12, 5),  "Tanggal_Selesai": date(2026, 12, 7),  "Keterangan": "STS LNGC Cargo Des #1 - FSRU NR 1", "Sumber": "Default Sistem"},
-    {"Tanggal_Mulai": date(2026, 12, 16), "Tanggal_Selesai": date(2026, 12, 18), "Keterangan": "STS LNGC Cargo Des #2 - FSRU NR 1", "Sumber": "Default Sistem"},
-    {"Tanggal_Mulai": date(2026, 12, 26), "Tanggal_Selesai": date(2026, 12, 28), "Keterangan": "STS LNGC Cargo Des #3 - FSRU NR 1", "Sumber": "Default Sistem"},
+    {"Tanggal_Mulai": date(2026, 11, 6),  "Tanggal_Selesai": date(2026, 11, 8),  "Keterangan": "STS Prima Concord (LN42)", "Sumber": "Cargo Schedule Nov-Dec 2026"},
+    {"Tanggal_Mulai": date(2026, 11, 13), "Tanggal_Selesai": date(2026, 11, 15), "Keterangan": "STS SC Serenity (LN43)",   "Sumber": "Cargo Schedule Nov-Dec 2026"},
+    {"Tanggal_Mulai": date(2026, 11, 20), "Tanggal_Selesai": date(2026, 11, 22), "Keterangan": "STS Golden Quina (LS17)",  "Sumber": "Cargo Schedule Nov-Dec 2026"},
+    {"Tanggal_Mulai": date(2026, 11, 27), "Tanggal_Selesai": date(2026, 11, 29), "Keterangan": "STS SC Serenity (LN44)",   "Sumber": "Cargo Schedule Nov-Dec 2026"},
+    {"Tanggal_Mulai": date(2026, 12, 4),  "Tanggal_Selesai": date(2026, 12, 6),  "Keterangan": "STS Prima Carrier (LS19)", "Sumber": "Cargo Schedule Nov-Dec 2026"},
+    {"Tanggal_Mulai": date(2026, 12, 12), "Tanggal_Selesai": date(2026, 12, 14), "Keterangan": "STS Golden Isaia (LJ16)",  "Sumber": "Cargo Schedule Nov-Dec 2026"},
+    {"Tanggal_Mulai": date(2026, 12, 19), "Tanggal_Selesai": date(2026, 12, 21), "Keterangan": "STS SC Serenity (LN45)",   "Sumber": "Cargo Schedule Nov-Dec 2026"},
+    {"Tanggal_Mulai": date(2026, 12, 27), "Tanggal_Selesai": date(2026, 12, 29), "Keterangan": "STS Prima Carrier (LN46)", "Sumber": "Cargo Schedule Nov-Dec 2026"},
 ]
 
 if "df_data" not in st.session_state:
@@ -784,6 +851,11 @@ with col_mid:
                 from { stroke-dashoffset: 44; }
                 to   { stroke-dashoffset: 0; }
             }
+            @keyframes panelGradient {
+                0%   { background-position: 0% 50%; }
+                50%  { background-position: 100% 50%; }
+                100% { background-position: 0% 50%; }
+            }
             path.route-glow { filter: drop-shadow(0 0 8px #00e5ff); }
             path.route-pulse {
                 stroke-dasharray: 12, 10;
@@ -802,23 +874,27 @@ with col_mid:
 
             .calc-panel {
                 position: absolute; top: 8px; right: 8px; width: 255px;
-                background: rgba(10, 22, 42, 0.94); color: #fff; z-index: 9999;
+                background: linear-gradient(135deg, rgba(10, 22, 42, 0.95), rgba(16, 40, 76, 0.92), rgba(8, 18, 36, 0.95));
+                background-size: 220% 220%;
+                animation: panelGradient 14s ease-in-out infinite;
+                color: #fff; z-index: 9999;
                 border: 1px solid rgba(0, 229, 255, 0.75); border-radius: 7px;
-                box-shadow: 0 0 16px rgba(0, 229, 255, 0.28); backdrop-filter: blur(6px);
+                box-shadow: 0 0 18px rgba(0, 229, 255, 0.30); backdrop-filter: blur(6px);
                 overflow: hidden;
                 transition: box-shadow 0.25s ease, border-color 0.25s ease;
             }
             .calc-panel:hover {
                 border-color: #00e5ff;
-                box-shadow: 0 0 24px rgba(0, 229, 255, 0.45);
+                box-shadow: 0 0 26px rgba(0, 229, 255, 0.48);
             }
             .calc-hdr {
-                background: linear-gradient(90deg, #0b2545, #133c6e); padding: 6px 9px;
+                background: linear-gradient(90deg, #0b2545, #184a88, #0b2545);
+                background-size: 200% 100%;
+                animation: panelGradient 10s ease-in-out infinite;
+                padding: 6px 9px;
                 display:flex; justify-content:space-between; align-items:center;
                 border-bottom: 1.5px solid #00e5ff; cursor: pointer;
-                transition: background 0.2s ease;
             }
-            .calc-hdr:hover { background: linear-gradient(90deg, #103460, #1a4f8f); }
             .calc-body { padding: 8px; font-size: 10.5px; }
             .cfg-box { background: rgba(0,229,255,0.08); border:1px solid rgba(0,229,255,0.35); border-radius:4px; padding:6px; margin-bottom:6px; }
             .row2 { display:flex; justify-content:space-between; gap:5px; margin-top:3px; }
@@ -1261,21 +1337,21 @@ with b3:
 # ==============================================================================
 # BARIS 4: CEK BENTROK JADWAL AJUAN ARMAKUNG vs JADWAL STS FSRU NR (UPLOAD PDF)
 # ==============================================================================
-st.markdown('<div class="panel-header">📅 Cek Ketersediaan Tugboat &amp; Sinkronisasi Jadwal STS FSRU NR (PDF)</div>', unsafe_allow_html=True)
+st.markdown('<div class="panel-header">📅 Cek Ketersediaan Tugboat &amp; Sinkronisasi Jadwal Cargo STS FSRU NR (PDF)</div>', unsafe_allow_html=True)
 
 tab_cek, tab_pdf, tab_sts_tbl = st.tabs([
     "🔍 Cek Bentrok Ajuan ARMAKUNG",
-    "📄 Upload & Scan PDF Jadwal STS",
+    "📄 Upload & Scan PDF Cargo Schedule",
     "🗓️ Daftar Jadwal STS FSRU NR"
 ])
 
 with tab_cek:
-    st.caption("Masukkan tanggal ajuan peminjaman Tugboat dari afiliasi (PLI). Sistem otomatis memeriksa irisan terhadap jadwal STS FSRU NR aktif.")
+    st.caption("Masukkan tanggal ajuan peminjaman Tugboat dari afiliasi (PLI). Sistem otomatis memeriksa irisan terhadap jadwal Cargo STS FSRU NR aktif.")
     cc1, cc2, cc3 = st.columns([1.2, 1.2, 1.4])
     with cc1:
-        tgl_ajuan_mulai = st.date_input("Tanggal Mulai Ajuan (Delivery)", value=date(2026, 12, 4), key="req_start")
+        tgl_ajuan_mulai = st.date_input("Tanggal Mulai Ajuan (Delivery)", value=date(2026, 12, 3), key="req_start")
     with cc2:
-        tgl_ajuan_selesai = st.date_input("Tanggal Selesai Ajuan (Re-delivery)", value=date(2026, 12, 6), key="req_end")
+        tgl_ajuan_selesai = st.date_input("Tanggal Selesai Ajuan (Re-delivery)", value=date(2026, 12, 5), key="req_end")
     with cc3:
         kapal_ajuan = st.selectbox("Rencana Armada Tugboat", VESSEL_LIST, key="req_vessel")
 
@@ -1327,14 +1403,14 @@ with tab_cek:
                 """, unsafe_allow_html=True)
 
 with tab_pdf:
-    st.caption("Unggah PDF jadwal STS FSRU NR terbaru (dapat dilakukan berulang kali setiap ada update bulanan). Klik tombol scan untuk menyinkronkan tanggal ke sistem.")
+    st.caption("Unggah PDF Cargo Schedule FSRU NR terbaru (format kolom ETA seperti '06-Nov', '04-Dec' otomatis terbaca). Dapat diunggah berulang kali setiap ada update bulanan.")
     if not HAS_PDFPLUMBER:
-        st.warning("Library `pdfplumber` belum terpasang. Tambahkan baris `pdfplumber>=0.10.0` pada file `requirements.txt` di GitHub Anda.")
+        st.warning("Library `pdfplumber` belum terpasang. Pastikan `pdfplumber>=0.10.0` ada di file `requirements.txt` di GitHub Anda.")
 
-    up_c1, up_c2 = st.columns([2, 1])
+    up_c1, up_c2 = st.columns([1.8, 1.2])
     with up_c1:
         uploaded_pdf = st.file_uploader(
-            "Pilih File PDF Jadwal STS FSRU NR:",
+            "Pilih File PDF Cargo Schedule STS FSRU NR:",
             type=["pdf"],
             key=f"pdf_sts_uploader_{st.session_state.pdf_uploader_key}"
         )
@@ -1344,11 +1420,15 @@ with tab_pdf:
             ["Gabungkan & Perbarui (Merge)", "Ganti Seluruh Jadwal (Replace)"],
             index=0
         )
-        scan_year = st.number_input("Tahun Default (jika PDF tanpa tahun)", min_value=2025, max_value=2030, value=2026, step=1)
+        p1, p2 = st.columns(2)
+        scan_year = p1.number_input("Tahun Default", min_value=2025, max_value=2030, value=2026, step=1)
+        sts_days = p2.number_input("Durasi STS (Hari)", min_value=1, max_value=5, value=3, step=1, help="Lama jendela operasi STS sejak tanggal ETA (default 3 hari: ETA s/d ETA+2)")
 
     if st.button("🔎 Upload & Scan Jadwal STS Baru", type="primary", use_container_width=True, disabled=(uploaded_pdf is None)):
         if uploaded_pdf is not None:
-            scanned_rows, raw_debug = extract_sts_from_pdf(uploaded_pdf, default_year=int(scan_year))
+            scanned_rows, raw_debug = extract_sts_from_pdf(
+                uploaded_pdf, default_year=int(scan_year), default_sts_days=int(sts_days)
+            )
             if scanned_rows:
                 df_new_sts = pd.DataFrame(scanned_rows)
                 if sync_mode.startswith("Ganti"):
@@ -1365,14 +1445,14 @@ with tab_pdf:
                     "Waktu": datetime.now().strftime("%d/%m/%Y %H:%M"),
                     "File": uploaded_pdf.name,
                     "Mode": sync_mode,
-                    "Jumlah_Jadwal": len(scanned_rows)
+                    "Jumlah_Cargo": len(scanned_rows)
                 })
                 st.session_state.pdf_uploader_key += 1
-                st.success(f"Berhasil memindai {len(scanned_rows)} jadwal STS dari '{uploaded_pdf.name}' dan menyinkronkannya ke sistem!")
+                st.success(f"Berhasil memindai {len(scanned_rows)} jadwal Cargo STS dari '{uploaded_pdf.name}' dan menyinkronkannya ke sistem!")
                 st.rerun()
             else:
                 st.warning(
-                    "Tidak ditemukan pola tanggal teks pada PDF tersebut (kemungkinan PDF berupa hasil scan gambar). "
+                    "Tidak ditemukan pola tanggal ETA pada PDF tersebut (kemungkinan PDF berupa hasil scan gambar). "
                     "Anda tetap dapat menginput atau mengedit jadwal secara manual di tab 'Daftar Jadwal STS FSRU NR'."
                 )
                 with st.expander("Lihat teks mentah hasil pembacaan PDF"):
@@ -1383,16 +1463,16 @@ with tab_pdf:
         st.dataframe(pd.DataFrame(st.session_state.pdf_scan_history), use_container_width=True, hide_index=True)
 
 with tab_sts_tbl:
-    st.caption("Daftar jadwal STS FSRU NR yang saat ini aktif digunakan sebagai acuan pengecekan bentrok. Anda dapat mengedit, menambah, atau menghapus jadwal secara langsung.")
+    st.caption("Daftar jadwal Cargo STS FSRU NR yang aktif sebagai acuan pengecekan bentrok. Anda dapat mengedit, menambah, atau menghapus jadwal secara langsung.")
     sts_edit_df = st.data_editor(
         st.session_state.df_sts,
         num_rows="dynamic",
         use_container_width=True,
-        height=260,
+        height=280,
         column_config={
-            "Tanggal_Mulai": st.column_config.DateColumn("Tanggal Mulai STS", format="DD/MM/YYYY", required=True),
+            "Tanggal_Mulai": st.column_config.DateColumn("Tanggal ETA / Mulai STS", format="DD/MM/YYYY", required=True),
             "Tanggal_Selesai": st.column_config.DateColumn("Tanggal Selesai STS", format="DD/MM/YYYY", required=True),
-            "Keterangan": st.column_config.TextColumn("Keterangan / Cargo"),
+            "Keterangan": st.column_config.TextColumn("LNGC & Cargo No."),
             "Sumber": st.column_config.TextColumn("Sumber Update"),
         },
         key="editor_sts_schedule"
@@ -1413,7 +1493,7 @@ with tab_sts_tbl:
             use_container_width=True
         )
     with sc3:
-        if st.button("🔄 Reset Jadwal STS Default", use_container_width=True):
+        if st.button("🔄 Reset Jadwal Nov–Des 2026", use_container_width=True):
             st.session_state.df_sts = pd.DataFrame(INITIAL_STS_SCHEDULE)
             st.rerun()
 
