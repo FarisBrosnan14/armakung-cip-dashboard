@@ -40,402 +40,395 @@ st.set_page_config(
 # ==============================================================================
 st.markdown("""
 <style>
-    /* ==================== KEYFRAMES ANIMASI HIDUP & GRADASI PELAN ==================== */
-    @keyframes auroraBg {
-        0%   { background-position: 0% 50%; }
-        25%  { background-position: 50% 100%; }
-        50%  { background-position: 100% 50%; }
-        75%  { background-position: 50% 0%; }
-        100% { background-position: 0% 50%; }
+@keyframes auroraBg {
+    0%   { background-position: 0% 50%; }
+    25%  { background-position: 50% 100%; }
+    50%  { background-position: 100% 50%; }
+    75%  { background-position: 50% 0%; }
+    100% { background-position: 0% 50%; }
+}
+@keyframes titleGradientFlow {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+@keyframes cardGradientDrift {
+    0%   { background-position: 0% 0%; }
+    50%  { background-position: 100% 100%; }
+    100% { background-position: 0% 0%; }
+}
+@keyframes scanLine {
+    0%   { left: -38%; opacity: 0; }
+    15%  { opacity: 1; }
+    85%  { opacity: 1; }
+    100% { left: 108%; opacity: 0; }
+}
+@keyframes amberGlow {
+    0%, 100% { text-shadow: 0 0 10px rgba(255, 123, 58, 0.45); }
+    50%      { text-shadow: 0 0 22px rgba(255, 145, 77, 0.92), 0 0 34px rgba(255, 123, 58, 0.40); }
+}
+@keyframes borderBreath {
+    0%, 100% {
+        border-color: rgba(0, 229, 255, 0.42);
+        box-shadow: inset 0 0 14px rgba(0, 229, 255, 0.08), 0 0 12px rgba(0, 229, 255, 0.14);
     }
-    @keyframes titleGradientFlow {
-        0%   { background-position: 0% 50%; }
-        50%  { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
+    50% {
+        border-color: rgba(56, 232, 255, 0.82);
+        box-shadow: inset 0 0 24px rgba(0, 229, 255, 0.20), 0 0 24px rgba(0, 229, 255, 0.30);
     }
-    @keyframes cardGradientDrift {
-        0%   { background-position: 0% 0%; }
-        50%  { background-position: 100% 100%; }
-        100% { background-position: 0% 0%; }
-    }
-    @keyframes scanLine {
-        0%   { left: -38%; opacity: 0; }
-        15%  { opacity: 1; }
-        85%  { opacity: 1; }
-        100% { left: 108%; opacity: 0; }
-    }
-    @keyframes amberGlow {
-        0%, 100% { text-shadow: 0 0 10px rgba(255, 123, 58, 0.45); }
-        50%      { text-shadow: 0 0 22px rgba(255, 145, 77, 0.92), 0 0 34px rgba(255, 123, 58, 0.40); }
-    }
-    @keyframes borderBreath {
-        0%, 100% {
-            border-color: rgba(0, 229, 255, 0.42);
-            box-shadow: inset 0 0 14px rgba(0, 229, 255, 0.08), 0 0 12px rgba(0, 229, 255, 0.14);
-        }
-        50% {
-            border-color: rgba(56, 232, 255, 0.82);
-            box-shadow: inset 0 0 24px rgba(0, 229, 255, 0.20), 0 0 24px rgba(0, 229, 255, 0.30);
-        }
-    }
-    @keyframes statusPulse {
-        0%, 100% { transform: scale(1); }
-        50%      { transform: scale(1.006); }
-    }
+}
+@keyframes statusPulse {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.006); }
+}
 
-    /* Background utama dengan gradasi maritim bergerak dinamis dan pelan */
-    .stApp {
-        background: linear-gradient(
-            135deg,
-            #030914 0%,
-            #091c38 22%,
-            #0f2d56 45%,
-            #072540 68%,
-            #0c1b36 85%,
-            #040b18 100%
-        );
-        background-size: 320% 320%;
-        animation: auroraBg 22s ease-in-out infinite;
-        color: #e2e8f0;
-        -webkit-tap-highlight-color: transparent;
-    }
-    header[data-testid="stHeader"] {
-        background: rgba(5, 13, 26, 0.68);
-        backdrop-filter: blur(8px);
-    }
+.stApp {
+    background: linear-gradient(
+        135deg,
+        #030914 0%,
+        #091c38 22%,
+        #0f2d56 45%,
+        #072540 68%,
+        #0c1b36 85%,
+        #040b18 100%
+    );
+    background-size: 320% 320%;
+    animation: auroraBg 22s ease-in-out infinite;
+    color: #e2e8f0;
+    -webkit-tap-highlight-color: transparent;
+}
+header[data-testid="stHeader"] {
+    background: rgba(5, 13, 26, 0.68);
+    backdrop-filter: blur(8px);
+}
+.block-container {
+    padding-top: 3.6rem !important;
+    padding-bottom: 1.5rem !important;
+    padding-left: 1.25rem !important;
+    padding-right: 1.25rem !important;
+    max-width: 100%;
+}
+
+.cmd-title-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    text-align: center;
+    padding: 0.6rem 0.8rem 1rem 0.8rem;
+    border-bottom: 1.5px solid rgba(0, 229, 255, 0.35);
+    margin-bottom: 1rem;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(90deg, rgba(0,229,255,0.03), rgba(56,189,248,0.10), rgba(0,229,255,0.03));
+    background-size: 250% 100%;
+    animation: titleGradientFlow 14s ease-in-out infinite;
+    border-radius: 10px 10px 0 0;
+}
+.cmd-title-wrap::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: -38%;
+    width: 38%;
+    height: 2.5px;
+    background: linear-gradient(90deg, transparent, #00e5ff, #ffffff, #38bdf8, transparent);
+    box-shadow: 0 0 14px #00e5ff;
+    animation: scanLine 4.8s ease-in-out infinite;
+}
+.cmd-logo-box {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1.5px solid rgba(0, 229, 255, 0.80);
+    box-shadow: 0 0 16px rgba(0, 229, 255, 0.38);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.28s ease, box-shadow 0.28s ease;
+}
+.cmd-logo-box:hover {
+    transform: scale(1.06) rotate(-1deg);
+    box-shadow: 0 0 26px rgba(0, 229, 255, 0.72);
+}
+.cmd-logo-box img {
+    height: clamp(32px, 3.6vw, 46px);
+    width: auto;
+    object-fit: contain;
+    display: block;
+}
+.cmd-title {
+    font-family: 'Segoe UI', sans-serif;
+    font-size: clamp(1.1rem, 2.05vw, 1.9rem);
+    font-weight: 800;
+    letter-spacing: 1.8px;
+    background: linear-gradient(90deg, #38e8ff, #ffffff, #60a5fa, #00e5ff, #7dd3fc);
+    background-size: 260% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: titleGradientFlow 8s ease-in-out infinite;
+    filter: drop-shadow(0 0 12px rgba(0, 229, 255, 0.45));
+    margin: 0;
+    line-height: 1.25;
+}
+.cmd-subtitle {
+    font-size: clamp(0.66rem, 0.95vw, 0.82rem);
+    color: #94a3b8;
+    letter-spacing: 1.4px;
+    margin-top: 4px;
+}
+
+.kpi-box {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(
+        125deg,
+        rgba(10, 32, 64, 0.90),
+        rgba(18, 52, 96, 0.86),
+        rgba(7, 22, 46, 0.94),
+        rgba(12, 42, 78, 0.88)
+    );
+    background-size: 260% 260%;
+    border: 1px solid rgba(0, 229, 255, 0.50);
+    border-radius: 8px;
+    padding: 0.85rem 1.1rem;
+    margin-bottom: 0.75rem;
+    cursor: pointer;
+    animation: cardGradientDrift 14s ease-in-out infinite, borderBreath 5s ease-in-out infinite;
+    transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+                border-color 0.28s ease,
+                box-shadow 0.28s ease;
+}
+.kpi-box::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -120%;
+    width: 75%;
+    height: 100%;
+    background: linear-gradient(115deg, transparent 20%, rgba(0, 229, 255, 0.28) 50%, transparent 80%);
+    transition: left 0.65s ease;
+    pointer-events: none;
+}
+.kpi-box:hover, .kpi-box:active {
+    transform: translateY(-5px) scale(1.018);
+    border-color: #00e5ff;
+    box-shadow: inset 0 0 26px rgba(0, 229, 255, 0.28), 0 10px 28px rgba(0, 229, 255, 0.38);
+}
+.kpi-box:hover::before, .kpi-box:active::before {
+    left: 140%;
+}
+.kpi-label {
+    font-size: clamp(0.72rem, 0.9vw, 0.85rem);
+    font-weight: 600;
+    color: #cbd5e1;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+.kpi-value-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 6px;
+    margin-top: 4px;
+}
+.kpi-val {
+    font-size: clamp(1.35rem, 1.9vw, 1.85rem);
+    font-weight: 800;
+    color: #ff7b3a;
+    animation: amberGlow 3.2s ease-in-out infinite;
+}
+.kpi-unit {
+    font-size: clamp(0.72rem, 0.85vw, 0.82rem);
+    color: #7dd3fc;
+    font-weight: 600;
+}
+
+.info-card {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, rgba(8, 22, 44, 0.82), rgba(14, 38, 72, 0.78), rgba(6, 18, 38, 0.86));
+    background-size: 240% 240%;
+    animation: cardGradientDrift 18s ease-in-out infinite;
+    border: 1px solid rgba(0, 229, 255, 0.34);
+    border-radius: 8px;
+    padding: 11px;
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.info-card:hover, .info-card:active {
+    transform: translateY(-3px);
+    border-color: #00e5ff;
+    box-shadow: 0 6px 22px rgba(0, 229, 255, 0.30);
+}
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 4px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    transition: background 0.2s ease, padding-left 0.2s ease;
+}
+.info-row:hover, .info-row:active {
+    background: rgba(0, 229, 255, 0.12);
+    padding-left: 8px;
+}
+.info-row:last-child { border-bottom: none; }
+
+.panel-header {
+    background: linear-gradient(90deg, rgba(0, 229, 255, 0.24), rgba(56, 189, 248, 0.08), transparent);
+    background-size: 220% 100%;
+    animation: titleGradientFlow 12s ease-in-out infinite;
+    border-left: 3px solid #00e5ff;
+    padding: 6px 10px;
+    font-size: clamp(0.82rem, 1vw, 0.94rem);
+    font-weight: 700;
+    color: #67e8f9;
+    letter-spacing: 0.4px;
+    margin-bottom: 8px;
+    margin-top: 6px;
+    border-radius: 0 5px 5px 0;
+    transition: border-left-width 0.2s ease, color 0.2s ease, box-shadow 0.25s ease;
+}
+.panel-header:hover {
+    border-left-width: 6px;
+    color: #ffffff;
+    box-shadow: inset 0 0 12px rgba(0, 229, 255, 0.18);
+}
+
+.sts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(225px, 1fr));
+    gap: 10px;
+    margin-top: 8px;
+    margin-bottom: 10px;
+}
+.sts-card {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, rgba(10, 28, 56, 0.88), rgba(16, 46, 84, 0.80));
+    border: 1px solid rgba(0, 229, 255, 0.35);
+    border-radius: 8px;
+    padding: 10px 12px;
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.sts-card:hover {
+    transform: translateY(-3px);
+    border-color: #00e5ff;
+    box-shadow: 0 6px 20px rgba(0, 229, 255, 0.28);
+}
+.sts-card.sts-conflict {
+    border-color: #ef4444;
+    background: linear-gradient(135deg, rgba(127, 29, 29, 0.42), rgba(30, 20, 36, 0.88));
+    box-shadow: 0 0 16px rgba(239, 68, 68, 0.32);
+}
+.sts-card.sts-partial {
+    border-color: #f59e0b;
+    background: linear-gradient(135deg, rgba(120, 53, 15, 0.40), rgba(20, 30, 52, 0.88));
+    box-shadow: 0 0 16px rgba(245, 158, 11, 0.28);
+}
+.sts-badge-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+.sts-date-pill {
+    background: rgba(0, 229, 255, 0.18);
+    color: #67e8f9;
+    border: 1px solid rgba(0, 229, 255, 0.45);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.74rem;
+    font-weight: 700;
+}
+.sts-tag {
+    font-size: 0.70rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 10px;
+}
+.sts-tag-upcoming { background: rgba(56, 189, 248, 0.18); color: #7dd3fc; }
+.sts-tag-active   { background: rgba(255, 123, 58, 0.25); color: #fdba74; }
+.sts-tag-done     { background: rgba(148, 163, 184, 0.18); color: #94a3b8; }
+.sts-vessel {
+    font-size: 0.90rem;
+    font-weight: 700;
+    color: #f8fafc;
+    margin-bottom: 2px;
+}
+.sts-window {
+    font-size: 0.76rem;
+    color: #94a3b8;
+}
+
+.status-card {
+    border-radius: 9px;
+    padding: 15px 18px;
+    margin-top: 10px;
+    margin-bottom: 12px;
+    font-size: 0.92rem;
+    line-height: 1.55;
+    animation: statusPulse 4s ease-in-out infinite;
+}
+.status-safe {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(6, 78, 59, 0.28));
+    border: 1.5px solid #10b981;
+    color: #d1fae5;
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.24);
+}
+.status-warn {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.20), rgba(120, 53, 15, 0.30));
+    border: 1.5px solid #f59e0b;
+    color: #fef3c7;
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.28);
+}
+.status-danger {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.22), rgba(127, 29, 29, 0.34));
+    border: 1.5px solid #ef4444;
+    color: #fee2e2;
+    box-shadow: 0 0 22px rgba(239, 68, 68, 0.34);
+}
+
+div[data-testid="stPlotlyChart"] {
+    border: 1px solid rgba(0, 229, 255, 0.24);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color 0.28s ease, box-shadow 0.28s ease, transform 0.25s ease;
+}
+div[data-testid="stPlotlyChart"]:hover {
+    border-color: rgba(0, 229, 255, 0.82);
+    box-shadow: 0 0 22px rgba(0, 229, 255, 0.30);
+    transform: translateY(-2px);
+}
+
+.stButton > button, .stDownloadButton > button {
+    border: 1px solid rgba(0, 229, 255, 0.55) !important;
+    transition: transform 0.18s ease, box-shadow 0.25s ease !important;
+}
+.stButton > button:hover, .stDownloadButton > button:hover {
+    box-shadow: 0 0 16px rgba(0, 229, 255, 0.50) !important;
+    transform: translateY(-1px) !important;
+}
+.stButton > button:active, .stDownloadButton > button:active {
+    transform: scale(0.97) !important;
+}
+
+section[data-testid="stSidebar"] {
+    background-color: #071326;
+    border-right: 1px solid rgba(0, 229, 255, 0.3);
+}
+
+@media (max-width: 768px) {
     .block-container {
-        padding-top: 3.6rem !important;
-        padding-bottom: 1.5rem !important;
-        padding-left: 1.25rem !important;
-        padding-right: 1.25rem !important;
-        max-width: 100%;
+        padding-top: 3.2rem !important;
+        padding-left: 0.65rem !important;
+        padding-right: 0.65rem !important;
     }
-
-    /* ==================== HEADER COMMAND CENTER ==================== */
-    .cmd-title-wrap {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 16px;
-        flex-wrap: wrap;
-        text-align: center;
-        padding: 0.6rem 0.8rem 1rem 0.8rem;
-        border-bottom: 1.5px solid rgba(0, 229, 255, 0.35);
-        margin-bottom: 1rem;
-        position: relative;
-        overflow: hidden;
-        background: linear-gradient(90deg, rgba(0,229,255,0.03), rgba(56,189,248,0.10), rgba(0,229,255,0.03));
-        background-size: 250% 100%;
-        animation: titleGradientFlow 14s ease-in-out infinite;
-        border-radius: 10px 10px 0 0;
-    }
-    .cmd-title-wrap::after {
-        content: "";
-        position: absolute;
-        bottom: 0;
-        left: -38%;
-        width: 38%;
-        height: 2.5px;
-        background: linear-gradient(90deg, transparent, #00e5ff, #ffffff, #38bdf8, transparent);
-        box-shadow: 0 0 14px #00e5ff;
-        animation: scanLine 4.8s ease-in-out infinite;
-    }
-    .cmd-logo-box {
-        background: rgba(255, 255, 255, 0.95);
-        padding: 6px 12px;
-        border-radius: 8px;
-        border: 1.5px solid rgba(0, 229, 255, 0.80);
-        box-shadow: 0 0 16px rgba(0, 229, 255, 0.38);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: transform 0.28s ease, box-shadow 0.28s ease;
-    }
-    .cmd-logo-box:hover {
-        transform: scale(1.06) rotate(-1deg);
-        box-shadow: 0 0 26px rgba(0, 229, 255, 0.72);
-    }
-    .cmd-logo-box img {
-        height: clamp(32px, 3.6vw, 46px);
-        width: auto;
-        object-fit: contain;
-        display: block;
-    }
-    .cmd-title {
-        font-family: 'Segoe UI', sans-serif;
-        font-size: clamp(1.1rem, 2.05vw, 1.9rem);
-        font-weight: 800;
-        letter-spacing: 1.8px;
-        background: linear-gradient(90deg, #38e8ff, #ffffff, #60a5fa, #00e5ff, #7dd3fc);
-        background-size: 260% auto;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        animation: titleGradientFlow 8s ease-in-out infinite;
-        filter: drop-shadow(0 0 12px rgba(0, 229, 255, 0.45));
-        margin: 0;
-        line-height: 1.25;
-    }
-    .cmd-subtitle {
-        font-size: clamp(0.66rem, 0.95vw, 0.82rem);
-        color: #94a3b8;
-        letter-spacing: 1.4px;
-        margin-top: 4px;
-    }
-
-    /* ==================== KPI CARDS ==================== */
-    .kpi-box {
-        position: relative;
-        overflow: hidden;
-        background: linear-gradient(
-            125deg,
-            rgba(10, 32, 64, 0.90),
-            rgba(18, 52, 96, 0.86),
-            rgba(7, 22, 46, 0.94),
-            rgba(12, 42, 78, 0.88)
-        );
-        background-size: 260% 260%;
-        border: 1px solid rgba(0, 229, 255, 0.50);
-        border-radius: 8px;
-        padding: 0.85rem 1.1rem;
-        margin-bottom: 0.75rem;
-        cursor: pointer;
-        animation: cardGradientDrift 14s ease-in-out infinite, borderBreath 5s ease-in-out infinite;
-        transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
-                    border-color 0.28s ease,
-                    box-shadow 0.28s ease;
-    }
-    .kpi-box::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: -120%;
-        width: 75%;
-        height: 100%;
-        background: linear-gradient(115deg, transparent 20%, rgba(0, 229, 255, 0.28) 50%, transparent 80%);
-        transition: left 0.65s ease;
-        pointer-events: none;
-    }
-    .kpi-box:hover, .kpi-box:active {
-        transform: translateY(-5px) scale(1.018);
-        border-color: #00e5ff;
-        box-shadow: inset 0 0 26px rgba(0, 229, 255, 0.28), 0 10px 28px rgba(0, 229, 255, 0.38);
-    }
-    .kpi-box:hover::before, .kpi-box:active::before {
-        left: 140%;
-    }
-    .kpi-label {
-        font-size: clamp(0.72rem, 0.9vw, 0.85rem);
-        font-weight: 600;
-        color: #cbd5e1;
-        text-transform: uppercase;
-        letter-spacing: 0.6px;
-    }
-    .kpi-value-row {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: baseline;
-        justify-content: space-between;
-        gap: 6px;
-        margin-top: 4px;
-    }
-    .kpi-val {
-        font-size: clamp(1.35rem, 1.9vw, 1.85rem);
-        font-weight: 800;
-        color: #ff7b3a;
-        animation: amberGlow 3.2s ease-in-out infinite;
-    }
-    .kpi-unit {
-        font-size: clamp(0.72rem, 0.85vw, 0.82rem);
-        color: #7dd3fc;
-        font-weight: 600;
-    }
-
-    /* ==================== INFO CARDS & PANEL HEADERS ==================== */
-    .info-card {
-        position: relative;
-        overflow: hidden;
-        background: linear-gradient(135deg, rgba(8, 22, 44, 0.82), rgba(14, 38, 72, 0.78), rgba(6, 18, 38, 0.86));
-        background-size: 240% 240%;
-        animation: cardGradientDrift 18s ease-in-out infinite;
-        border: 1px solid rgba(0, 229, 255, 0.34);
-        border-radius: 8px;
-        padding: 11px;
-        transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
-    }
-    .info-card:hover, .info-card:active {
-        transform: translateY(-3px);
-        border-color: #00e5ff;
-        box-shadow: 0 6px 22px rgba(0, 229, 255, 0.30);
-    }
-    .info-row {
-        display: flex;
-        justify-content: space-between;
-        padding: 6px 4px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 4px;
-        transition: background 0.2s ease, padding-left 0.2s ease;
-    }
-    .info-row:hover, .info-row:active {
-        background: rgba(0, 229, 255, 0.12);
-        padding-left: 8px;
-    }
-    .info-row:last-child { border-bottom: none; }
-
-    .panel-header {
-        background: linear-gradient(90deg, rgba(0, 229, 255, 0.24), rgba(56, 189, 248, 0.08), transparent);
-        background-size: 220% 100%;
-        animation: titleGradientFlow 12s ease-in-out infinite;
-        border-left: 3px solid #00e5ff;
-        padding: 6px 10px;
-        font-size: clamp(0.82rem, 1vw, 0.94rem);
-        font-weight: 700;
-        color: #67e8f9;
-        letter-spacing: 0.4px;
-        margin-bottom: 8px;
-        margin-top: 6px;
-        border-radius: 0 5px 5px 0;
-        transition: border-left-width 0.2s ease, color 0.2s ease, box-shadow 0.25s ease;
-    }
-    .panel-header:hover {
-        border-left-width: 6px;
-        color: #ffffff;
-        box-shadow: inset 0 0 12px rgba(0, 229, 255, 0.18);
-    }
-
-    /* ==================== KARTU JADWAL CARGO STS (GLASS NEON) ==================== */
-    .sts-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(225px, 1fr));
-        gap: 10px;
-        margin-top: 8px;
-        margin-bottom: 10px;
-    }
-    .sts-card {
-        position: relative;
-        overflow: hidden;
-        background: linear-gradient(135deg, rgba(10, 28, 56, 0.88), rgba(16, 46, 84, 0.80));
-        border: 1px solid rgba(0, 229, 255, 0.35);
-        border-radius: 8px;
-        padding: 10px 12px;
-        transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
-    }
-    .sts-card:hover {
-        transform: translateY(-3px);
-        border-color: #00e5ff;
-        box-shadow: 0 6px 20px rgba(0, 229, 255, 0.28);
-    }
-    .sts-card.sts-conflict {
-        border-color: #ef4444;
-        background: linear-gradient(135deg, rgba(127, 29, 29, 0.42), rgba(30, 20, 36, 0.88));
-        box-shadow: 0 0 16px rgba(239, 68, 68, 0.32);
-    }
-    .sts-card.sts-partial {
-        border-color: #f59e0b;
-        background: linear-gradient(135deg, rgba(120, 53, 15, 0.40), rgba(20, 30, 52, 0.88));
-        box-shadow: 0 0 16px rgba(245, 158, 11, 0.28);
-    }
-    .sts-badge-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 6px;
-    }
-    .sts-date-pill {
-        background: rgba(0, 229, 255, 0.18);
-        color: #67e8f9;
-        border: 1px solid rgba(0, 229, 255, 0.45);
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 0.74rem;
-        font-weight: 700;
-    }
-    .sts-tag {
-        font-size: 0.70rem;
-        font-weight: 700;
-        padding: 2px 7px;
-        border-radius: 10px;
-    }
-    .sts-tag-upcoming { background: rgba(56, 189, 248, 0.18); color: #7dd3fc; }
-    .sts-tag-active   { background: rgba(255, 123, 58, 0.25); color: #fdba74; }
-    .sts-tag-done     { background: rgba(148, 163, 184, 0.18); color: #94a3b8; }
-    .sts-vessel {
-        font-size: 0.90rem;
-        font-weight: 700;
-        color: #f8fafc;
-        margin-bottom: 2px;
-    }
-    .sts-window {
-        font-size: 0.76rem;
-        color: #94a3b8;
-    }
-
-    /* ==================== STATUS ALERT CARD (3 LEVEL KEPUTUSAN) ==================== */
-    .status-card {
-        border-radius: 9px;
-        padding: 15px 18px;
-        margin-top: 10px;
-        margin-bottom: 12px;
-        font-size: 0.92rem;
-        line-height: 1.55;
-        animation: statusPulse 4s ease-in-out infinite;
-    }
-    .status-safe {
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(6, 78, 59, 0.28));
-        border: 1.5px solid #10b981;
-        color: #d1fae5;
-        box-shadow: 0 0 20px rgba(16, 185, 129, 0.24);
-    }
-    .status-warn {
-        background: linear-gradient(135deg, rgba(245, 158, 11, 0.20), rgba(120, 53, 15, 0.30));
-        border: 1.5px solid #f59e0b;
-        color: #fef3c7;
-        box-shadow: 0 0 20px rgba(245, 158, 11, 0.28);
-    }
-    .status-danger {
-        background: linear-gradient(135deg, rgba(239, 68, 68, 0.22), rgba(127, 29, 29, 0.34));
-        border: 1.5px solid #ef4444;
-        color: #fee2e2;
-        box-shadow: 0 0 22px rgba(239, 68, 68, 0.34);
-    }
-
-    div[data-testid="stPlotlyChart"] {
-        border: 1px solid rgba(0, 229, 255, 0.24);
-        border-radius: 8px;
-        overflow: hidden;
-        transition: border-color 0.28s ease, box-shadow 0.28s ease, transform 0.25s ease;
-    }
-    div[data-testid="stPlotlyChart"]:hover {
-        border-color: rgba(0, 229, 255, 0.82);
-        box-shadow: 0 0 22px rgba(0, 229, 255, 0.30);
-        transform: translateY(-2px);
-    }
-
-    .stButton > button, .stDownloadButton > button {
-        border: 1px solid rgba(0, 229, 255, 0.55) !important;
-        transition: transform 0.18s ease, box-shadow 0.25s ease !important;
-    }
-    .stButton > button:hover, .stDownloadButton > button:hover {
-        box-shadow: 0 0 16px rgba(0, 229, 255, 0.50) !important;
-        transform: translateY(-1px) !important;
-    }
-    .stButton > button:active, .stDownloadButton > button:active {
-        transform: scale(0.97) !important;
-    }
-
-    section[data-testid="stSidebar"] {
-        background-color: #071326;
-        border-right: 1px solid rgba(0, 229, 255, 0.3);
-    }
-
-    @media (max-width: 768px) {
-        .block-container {
-            padding-top: 3.2rem !important;
-            padding-left: 0.65rem !important;
-            padding-right: 0.65rem !important;
-        }
-        .kpi-box { padding: 0.65rem 0.8rem; }
-        .cmd-title-wrap { gap: 10px; }
-    }
+    .kpi-box { padding: 0.65rem 0.8rem; }
+    .cmd-title-wrap { gap: 10px; }
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -766,49 +759,49 @@ if HAS_LOGO:
     b64_logo = get_logo_base64(LOGO_FILE)
     logo_html = f'<div class="cmd-logo-box"><img src="data:image/png;base64,{b64_logo}" alt="Logo Perusahaan"></div>'
 
-st.markdown(f"""
-<div class="cmd-title-wrap">
-    {logo_html}
-    <div>
-        <div class="cmd-title">ARMAKUNG MARITIME MONITORING &amp; FUEL COMMAND CENTER</div>
-        <div class="cmd-subtitle">PT NUSANTARA REGAS</div>
-    </div>
-</div>
-""", unsafe_allow_html=True)
+st.markdown(
+    f'<div class="cmd-title-wrap">{logo_html}'
+    f'<div><div class="cmd-title">ARMAKUNG MARITIME MONITORING &amp; FUEL COMMAND CENTER</div>'
+    f'<div class="cmd-subtitle">PT NUSANTARA REGAS</div></div></div>',
+    unsafe_allow_html=True
+)
 
 # ==============================================================================
 # BARIS 1: 3 KARTU KPI UTAMA
 # ==============================================================================
 k1, k2, k3 = st.columns(3)
 with k1:
-    st.markdown(f"""
-    <div class="kpi-box" tabindex="0">
-        <div class="kpi-label">Realisasi Revenue YTD ({active_months} Bulan)</div>
-        <div class="kpi-value-row">
-            <span class="kpi-val">{total_rev/1e9:,.2f} Miliar</span>
-            <span class="kpi-unit">IDR &bull; {total_calls} Call Aktual</span>
-        </div>
-    </div>""", unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="kpi-box" tabindex="0">'
+        f'<div class="kpi-label">Realisasi Revenue YTD ({active_months} Bulan)</div>'
+        f'<div class="kpi-value-row">'
+        f'<span class="kpi-val">{total_rev/1e9:,.2f} Miliar</span>'
+        f'<span class="kpi-unit">IDR &bull; {total_calls} Call Aktual</span>'
+        f'</div></div>',
+        unsafe_allow_html=True
+    )
 
 with k2:
-    st.markdown(f"""
-    <div class="kpi-box" tabindex="0">
-        <div class="kpi-label">Proyeksi 1 Tahun Anggaran (12/{active_months})</div>
-        <div class="kpi-value-row">
-            <span class="kpi-val">{proj_rev/1e9:,.2f} Miliar</span>
-            <span class="kpi-unit">IDR &bull; {ann_calls:.1f} Call/Thn</span>
-        </div>
-    </div>""", unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="kpi-box" tabindex="0">'
+        f'<div class="kpi-label">Proyeksi 1 Tahun Anggaran (12/{active_months})</div>'
+        f'<div class="kpi-value-row">'
+        f'<span class="kpi-val">{proj_rev/1e9:,.2f} Miliar</span>'
+        f'<span class="kpi-unit">IDR &bull; {ann_calls:.1f} Call/Thn</span>'
+        f'</div></div>',
+        unsafe_allow_html=True
+    )
 
 with k3:
-    st.markdown(f"""
-    <div class="kpi-box" tabindex="0">
-        <div class="kpi-label">Potensi Full Service 2026</div>
-        <div class="kpi-value-row">
-            <span class="kpi-val">{potensi_rev/1e9:,.2f} Miliar</span>
-            <span class="kpi-unit">IDR &bull; Zero CAPEX</span>
-        </div>
-    </div>""", unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="kpi-box" tabindex="0">'
+        f'<div class="kpi-label">Potensi Full Service 2026</div>'
+        f'<div class="kpi-value-row">'
+        f'<span class="kpi-val">{potensi_rev/1e9:,.2f} Miliar</span>'
+        f'<span class="kpi-unit">IDR &bull; Zero CAPEX</span>'
+        f'</div></div>',
+        unsafe_allow_html=True
+    )
 
 PLOT_BG = "rgba(8, 22, 44, 0.72)"
 FONT_CLR = "#cbd5e1"
@@ -845,26 +838,15 @@ with col_left:
     st.markdown('<div class="panel-header">⏱️ Ringkasan Operasional YTD</div>', unsafe_allow_html=True)
     total_jam = df["Durasi"].sum() * 24
     total_hsd = df["HSD_L"].sum()
-    st.markdown(f"""
-    <div class="info-card" style="font-size:0.84rem;" tabindex="0">
-        <div class="info-row">
-            <span style="color:#94a3b8;">Total Durasi</span>
-            <b style="color:#00e5ff;">{df['Durasi'].sum():.2f} Hr ({total_jam:,.0f} Jam)</b>
-        </div>
-        <div class="info-row">
-            <span style="color:#94a3b8;">Total HSD</span>
-            <b style="color:#ffeb3b;">{total_hsd:,.0f} Liter</b>
-        </div>
-        <div class="info-row">
-            <span style="color:#94a3b8;">Layanan</span>
-            <b style="color:#4ade80;">{len(full_df)} Full / {len(df)-len(full_df)} Partial</b>
-        </div>
-        <div class="info-row">
-            <span style="color:#94a3b8;">Lead Time</span>
-            <b style="color:#ff7b3a;">52,13 Jam (748% Cepat)</b>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="info-card" style="font-size:0.84rem;" tabindex="0">'
+        f'<div class="info-row"><span style="color:#94a3b8;">Total Durasi</span><b style="color:#00e5ff;">{df["Durasi"].sum():.2f} Hr ({total_jam:,.0f} Jam)</b></div>'
+        f'<div class="info-row"><span style="color:#94a3b8;">Total HSD</span><b style="color:#ffeb3b;">{total_hsd:,.0f} Liter</b></div>'
+        f'<div class="info-row"><span style="color:#94a3b8;">Layanan</span><b style="color:#4ade80;">{len(full_df)} Full / {len(df)-len(full_df)} Partial</b></div>'
+        f'<div class="info-row"><span style="color:#94a3b8;">Lead Time</span><b style="color:#ff7b3a;">52,13 Jam (748% Cepat)</b></div>'
+        f'</div>',
+        unsafe_allow_html=True
+    )
 
 with col_mid:
     st.markdown('<div class="panel-header">🗺️ Live Maritime Route &amp; Fuel Calculator (NR OptiVoyage)</div>', unsafe_allow_html=True)
@@ -1286,24 +1268,24 @@ with col_right:
         max_r = df.loc[df[rev_col].idxmax()]
         min_r = df.loc[df[rev_col].idxmin()]
         avg_v = df[rev_col].mean()
-        st.markdown(f"""
-        <div class="info-card" style="font-size:0.82rem;" tabindex="0">
-            <div class="info-row" style="display:block;">
-                <span style="color:#94a3b8; font-size:0.74rem;">TERTINGGI (MAX) &bull; {max_r['Bulan']}</span><br>
-                <b style="color:#4ade80; font-size:0.92rem;">Rp {max_r[rev_col]:,.0f}</b>
-                <span style="color:#cbd5e1; font-size:0.73rem;"> ({max_r['Kapal'].replace('TB. ','')})</span>
-            </div>
-            <div class="info-row" style="display:block;">
-                <span style="color:#94a3b8; font-size:0.74rem;">RATA-RATA PER CALL</span><br>
-                <b style="color:#00e5ff; font-size:0.92rem;">Rp {avg_v:,.0f}</b>
-            </div>
-            <div class="info-row" style="display:block;">
-                <span style="color:#94a3b8; font-size:0.74rem;">TERENDAH (MIN) &bull; {min_r['Bulan']}</span><br>
-                <b style="color:#facc15; font-size:0.92rem;">Rp {min_r[rev_col]:,.0f}</b>
-                <span style="color:#cbd5e1; font-size:0.73rem;"> ({min_r['Kapal'].replace('TB. ','')})</span>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="info-card" style="font-size:0.82rem;" tabindex="0">'
+            f'<div class="info-row" style="display:block;">'
+            f'<span style="color:#94a3b8; font-size:0.74rem;">TERTINGGI (MAX) &bull; {max_r["Bulan"]}</span><br>'
+            f'<b style="color:#4ade80; font-size:0.92rem;">Rp {max_r[rev_col]:,.0f}</b>'
+            f'<span style="color:#cbd5e1; font-size:0.73rem;"> ({max_r["Kapal"].replace("TB. ","")})</span>'
+            f'</div>'
+            f'<div class="info-row" style="display:block;">'
+            f'<span style="color:#94a3b8; font-size:0.74rem;">RATA-RATA PER CALL</span><br>'
+            f'<b style="color:#00e5ff; font-size:0.92rem;">Rp {avg_v:,.0f}</b>'
+            f'</div>'
+            f'<div class="info-row" style="display:block;">'
+            f'<span style="color:#94a3b8; font-size:0.74rem;">TERENDAH (MIN) &bull; {min_r["Bulan"]}</span><br>'
+            f'<b style="color:#facc15; font-size:0.92rem;">Rp {min_r[rev_col]:,.0f}</b>'
+            f'<span style="color:#cbd5e1; font-size:0.73rem;"> ({min_r["Kapal"].replace("TB. ","")})</span>'
+            f'</div></div>',
+            unsafe_allow_html=True
+        )
 
 # ==============================================================================
 # BARIS 3: 3 GRAFIK BAWAH
@@ -1404,46 +1386,49 @@ with tab_cek:
     h5_note = f"✅ Memenuhi SLA Request H-5 ({lead_days} hari ke depan)" if lead_days >= 5 else f"⚠️ Kurang dari SLA H-5 ({lead_days} hari dari hari ini)"
 
     if status_code == "BISA":
-        st.markdown(f"""
-        <div class="status-card status-safe">
-            <div style="font-size:1.05rem; font-weight:800;">✅ BISA DILAKUKAN — FULL SERVICE (BERTHING &amp; UNBERTHING)</div>
-            Periode ajuan <b>{tgl_ajuan.strftime('%d %b %Y')} s/d {tgl_selesai_ajuan.strftime('%d %b %Y')}</b> ({durasi_ajuan} hari)
-            <b>aman dan tidak beririsan</b> dengan jadwal Cargo STS FSRU NR.<br>
-            <span style="font-size:0.82rem; opacity:0.9;">{h5_note}</span>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="status-card status-safe">'
+            f'<div style="font-size:1.05rem; font-weight:800;">✅ BISA DILAKUKAN — FULL SERVICE (BERTHING &amp; UNBERTHING)</div>'
+            f'Periode ajuan <b>{tgl_ajuan.strftime("%d %b %Y")} s/d {tgl_selesai_ajuan.strftime("%d %b %Y")}</b> ({durasi_ajuan} hari) '
+            f'<b>aman dan tidak beririsan</b> dengan jadwal Cargo STS FSRU NR.<br>'
+            f'<span style="font-size:0.82rem; opacity:0.9;">{h5_note}</span>'
+            f'</div>',
+            unsafe_allow_html=True
+        )
     elif status_code == "BERTHING_ONLY":
         irisan_str = ", ".join(d.strftime("%d %b %Y") for d in sorted(overlap_days))
         detail_li = "".join(
-            f"<li><b>{c['STS_Mulai'].strftime('%d %b %Y')} – {c['STS_Selesai'].strftime('%d %b %Y')}</b> &bull; {c['Keterangan']}</li>"
+            f'<li><b>{c["STS_Mulai"].strftime("%d %b %Y")} – {c["STS_Selesai"].strftime("%d %b %Y")}</b> &bull; {c["Keterangan"]}</li>'
             for c in conflict_list
         )
-        st.markdown(f"""
-        <div class="status-card status-warn">
-            <div style="font-size:1.05rem; font-weight:800;">⚠️ HANYA ASSIST BERTHING SAJA (TIDAK BISA UNBERTHING)</div>
-            Hari keberangkatan/berthing ajuan (<b>{tgl_ajuan.strftime('%d %b %Y')}</b>) masih aman, namun hari lanjutan
-            (s/d <b>{tgl_selesai_ajuan.strftime('%d %b %Y')}</b>) beririsan dengan jadwal STS FSRU NR pada: <b>{irisan_str}</b>.<br>
-            <b>Keputusan:</b> Diizinkan <b>Assist Berthing Only</b> pada jadwal ajuan, lalu Tugboat wajib segera kembali untuk STS FSRU NR.
-            <ul style="margin:6px 0 4px 18px;">{detail_li}</ul>
-            <span style="font-size:0.82rem; opacity:0.9;">{h5_note}</span>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="status-card status-warn">'
+            f'<div style="font-size:1.05rem; font-weight:800;">⚠️ HANYA ASSIST BERTHING SAJA (TIDAK BISA UNBERTHING)</div>'
+            f'Hari keberangkatan/berthing ajuan (<b>{tgl_ajuan.strftime("%d %b %Y")}</b>) masih aman, namun hari lanjutan '
+            f'(s/d <b>{tgl_selesai_ajuan.strftime("%d %b %Y")}</b>) beririsan dengan jadwal STS FSRU NR pada: <b>{irisan_str}</b>.<br>'
+            f'<b>Keputusan:</b> Diizinkan <b>Assist Berthing Only</b> pada jadwal ajuan, lalu Tugboat wajib segera kembali untuk STS FSRU NR.'
+            f'<ul style="margin:6px 0 4px 18px;">{detail_li}</ul>'
+            f'<span style="font-size:0.82rem; opacity:0.9;">{h5_note}</span>'
+            f'</div>',
+            unsafe_allow_html=True
+        )
     else:
         irisan_str = ", ".join(d.strftime("%d %b %Y") for d in sorted(overlap_days))
         detail_li = "".join(
-            f"<li><b>{c['STS_Mulai'].strftime('%d %b %Y')} – {c['STS_Selesai'].strftime('%d %b %Y')}</b> &bull; {c['Keterangan']}</li>"
+            f'<li><b>{c["STS_Mulai"].strftime("%d %b %Y")} – {c["STS_Selesai"].strftime("%d %b %Y")}</b> &bull; {c["Keterangan"]}</li>'
             for c in conflict_list
         )
-        st.markdown(f"""
-        <div class="status-card status-danger">
-            <div style="font-size:1.05rem; font-weight:800;">🚫 TIDAK BISA SAMA SEKALI — BENTROK LANGSUNG HARI STS FSRU NR</div>
-            Tanggal mulai ajuan <b>{tgl_ajuan.strftime('%d %b %Y')}</b> jatuh tepat di dalam jendela operasi STS FSRU NR
-            (seluruh armada Tugboat wajib <i>standby</i> penuh di FSRU NR).<br>
-            <b>Hari Bentrok:</b> {irisan_str}
-            <ul style="margin:6px 0 4px 18px;">{detail_li}</ul>
-            <span style="font-size:0.82rem; opacity:0.9;">{h5_note}</span>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="status-card status-danger">'
+            f'<div style="font-size:1.05rem; font-weight:800;">🚫 TIDAK BISA SAMA SEKALI — BENTROK LANGSUNG HARI STS FSRU NR</div>'
+            f'Tanggal mulai ajuan <b>{tgl_ajuan.strftime("%d %b %Y")}</b> jatuh tepat di dalam jendela operasi STS FSRU NR '
+            f'(seluruh armada Tugboat wajib <i>standby</i> penuh di FSRU NR).<br>'
+            f'<b>Hari Bentrok:</b> {irisan_str}'
+            f'<ul style="margin:6px 0 4px 18px;">{detail_li}</ul>'
+            f'<span style="font-size:0.82rem; opacity:0.9;">{h5_note}</span>'
+            f'</div>',
+            unsafe_allow_html=True
+        )
 
     # --- VISUALISASI 1: INTERACTIVE GANTT TIMELINE JADWAL STS vs AJUAN ARMAKUNG ---
     sts_df_vis = st.session_state.df_sts.copy()
@@ -1504,9 +1489,9 @@ with tab_cek:
         )
         st.plotly_chart(fig_gantt, use_container_width=True, config={"displayModeBar": False})
 
-        # --- VISUALISASI 2: KARTU CARGO SCHEDULE NEON ---
+        # --- VISUALISASI 2: KARTU CARGO SCHEDULE NEON (SINGLE-LINE HTML) ---
         today_dt = date.today()
-        cards_html = ['<div class="sts-grid">']
+        cards_parts = ['<div class="sts-grid">']
         for _, r in sts_df_vis.iterrows():
             s0_d = r["Tanggal_Mulai"].date()
             s1_d = r["Tanggal_Selesai"].date()
@@ -1522,18 +1507,18 @@ with tab_cek:
                 diff = (s0_d - today_dt).days
                 tag_html = f'<span class="sts-tag sts-tag-upcoming">H-{diff}</span>'
 
-            cards_html.append(f"""
-            <div class="sts-card{extra_cls}">
-                <div class="sts-badge-row">
-                    <span class="sts-date-pill">ETA {s0_d.strftime('%d %b %Y')}</span>
-                    {tag_html}
-                </div>
-                <div class="sts-vessel">🚢 {r['Keterangan']}</div>
-                <div class="sts-window">Jendela STS: {s0_d.strftime('%d/%m')} – {s1_d.strftime('%d/%m/%Y')} ({dur_d} hari)</div>
-            </div>
-            """)
-        cards_html.append('</div>')
-        st.markdown("".join(cards_html), unsafe_allow_html=True)
+            cards_parts.append(
+                f'<div class="sts-card{extra_cls}">'
+                f'<div class="sts-badge-row">'
+                f'<span class="sts-date-pill">ETA {s0_d.strftime("%d %b %Y")}</span>'
+                f'{tag_html}'
+                f'</div>'
+                f'<div class="sts-vessel">🚢 {r["Keterangan"]}</div>'
+                f'<div class="sts-window">Jendela STS: {s0_d.strftime("%d/%m")} – {s1_d.strftime("%d/%m/%Y")} ({dur_d} hari)</div>'
+                f'</div>'
+            )
+        cards_parts.append('</div>')
+        st.markdown("".join(cards_parts), unsafe_allow_html=True)
 
 with tab_pdf:
     st.caption("Unggah PDF Cargo Schedule FSRU NR terbaru (format kolom ETA seperti '06-Nov', '04-Dec' otomatis terbaca). Dapat diunggah berulang kali setiap ada update bulanan.")
