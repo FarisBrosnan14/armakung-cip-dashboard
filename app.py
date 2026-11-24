@@ -36,7 +36,7 @@ st.set_page_config(
 )
 
 # ==============================================================================
-# CUSTOM CSS: DYNAMIC SLOW GRADIENT + LIVING ANIMATIONS + STS CARGO CARDS
+# CUSTOM CSS: DYNAMIC SLOW GRADIENT + LIVING ANIMATIONS + MID + STS CARDS
 # ==============================================================================
 st.markdown("""
 <style>
@@ -80,6 +80,10 @@ st.markdown("""
 @keyframes statusPulse {
     0%, 100% { transform: scale(1); }
     50%      { transform: scale(1.006); }
+}
+@keyframes liveDot {
+    0%, 100% { opacity: 1; box-shadow: 0 0 8px #10b981; }
+    50%      { opacity: 0.35; box-shadow: 0 0 2px #10b981; }
 }
 
 .stApp {
@@ -249,12 +253,12 @@ header[data-testid="stHeader"] {
 .info-card {
     position: relative;
     overflow: hidden;
-    background: linear-gradient(135deg, rgba(8, 22, 44, 0.82), rgba(14, 38, 72, 0.78), rgba(6, 18, 38, 0.86));
+    background: linear-gradient(135deg, rgba(8, 22, 44, 0.84), rgba(14, 38, 72, 0.80), rgba(6, 18, 38, 0.88));
     background-size: 240% 240%;
     animation: cardGradientDrift 18s ease-in-out infinite;
     border: 1px solid rgba(0, 229, 255, 0.34);
     border-radius: 8px;
-    padding: 11px;
+    padding: 11px 12px;
     transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
 }
 .info-card:hover, .info-card:active {
@@ -265,7 +269,8 @@ header[data-testid="stHeader"] {
 .info-row {
     display: flex;
     justify-content: space-between;
-    padding: 6px 4px;
+    align-items: center;
+    padding: 5.5px 4px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 4px;
     transition: background 0.2s ease, padding-left 0.2s ease;
@@ -275,6 +280,57 @@ header[data-testid="stHeader"] {
     padding-left: 8px;
 }
 .info-row:last-child { border-bottom: none; }
+
+/* Multi-Information Display (MID) Operasional */
+.mid-box {
+    background: linear-gradient(145deg, rgba(7, 20, 42, 0.88), rgba(14, 38, 74, 0.82), rgba(5, 16, 34, 0.92));
+    background-size: 240% 240%;
+    animation: cardGradientDrift 16s ease-in-out infinite;
+    border: 1px solid rgba(0, 229, 255, 0.40);
+    border-radius: 8px;
+    padding: 11px 12px;
+    min-height: 224px;
+}
+.mid-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 12px;
+    background: rgba(16, 185, 129, 0.16);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.45);
+}
+.live-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #10b981;
+    display: inline-block;
+    animation: liveDot 1.8s ease-in-out infinite;
+}
+.mid-highlight {
+    background: rgba(0, 229, 255, 0.09);
+    border: 1px solid rgba(0, 229, 255, 0.30);
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin: 7px 0;
+}
+.mid-bar-bg {
+    width: 100%;
+    height: 7px;
+    background: rgba(255, 255, 255, 0.10);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 4px;
+}
+.mid-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #00e5ff, #38bdf8, #10b981);
+}
 
 .panel-header {
     background: linear-gradient(90deg, rgba(0, 229, 255, 0.24), rgba(56, 189, 248, 0.08), transparent);
@@ -597,9 +653,9 @@ def check_sts_availability(req_start: date, durasi_hari: float, sts_df: pd.DataF
     Logika 3 Keputusan Operasional untuk Input 1 (Pre-Check Ajuan):
     - Input hanya: Tanggal Mulai Ajuan + Durasi (Hari).
     - Output:
-      1) 'BISA'          : Tidak ada irisan hari dengan jadwal STS FSRU NR -> Full Service (Berthing & Unberthing).
-      2) 'BERTHING_ONLY' : Hari mulai ajuan aman, namun hari lanjutan beririsan dengan jadwal STS NR -> Hanya Assist Berthing Saja.
-      3) 'TIDAK_BISA'    : Tanggal mulai ajuan jatuh tepat pada hari STS FSRU NR -> Tidak Bisa Sama Sekali.
+      1) 'BISA'          : Tidak ada irisan hari dengan jadwal STS FSRU NR -> Full Service.
+      2) 'BERTHING_ONLY' : Hari mulai aman, namun hari lanjutan beririsan STS NR -> Hanya Assist Berthing Saja.
+      3) 'TIDAK_BISA'    : Tanggal mulai jatuh tepat pada hari STS FSRU NR -> Tidak Bisa Sama Sekali.
     """
     span_days = max(1, int(math.ceil(durasi_hari)))
     req_end = req_start + timedelta(days=span_days - 1)
@@ -808,42 +864,58 @@ FONT_CLR = "#cbd5e1"
 GRID_CLR = "rgba(0, 229, 255, 0.14)"
 
 # ==============================================================================
-# BARIS 2: ARMADA | PETA MARITIM (100% BEBAS API KEY) | KOMPOSISI & REKOR
+# BARIS 2: 2 KOLOM OPTIMAL (TANPA KOMPOSISI REVENUE — PETA & INFO LEBIH LEGA)
 # ==============================================================================
-col_left, col_mid, col_right = st.columns([1.15, 2.35, 1.15], gap="small")
+col_left, col_mid = st.columns([1.32, 2.68], gap="small")
 
 with col_left:
     st.markdown('<div class="panel-header">⚓ Revenue per Armada (Miliar Rp)</div>', unsafe_allow_html=True)
     v_agg = df.groupby("Kapal", as_index=False).agg(Rev=(rev_col, "sum"), Calls=("Bulan", "count")).sort_values("Rev")
-    max_v = (v_agg["Rev"].max() / 1e9) * 1.28 if len(v_agg) > 0 else 3
+    max_v = (v_agg["Rev"].max() / 1e9) * 1.25 if len(v_agg) > 0 else 3
     fig_hbar = go.Figure(go.Bar(
         x=v_agg["Rev"] / 1e9,
         y=v_agg["Kapal"].str.replace("TB. ", ""),
         orientation="h",
         marker=dict(color=["#38bdf8", "#6366f1", "#00e5ff"][:len(v_agg)], line=dict(color="#00e5ff", width=1)),
-        text=[f"Rp {r/1e9:.2f}M ({c}x)" for r, c in zip(v_agg["Rev"], v_agg["Calls"])],
+        text=[f"Rp {r/1e9:.2f} M ({c}x)" for r, c in zip(v_agg["Rev"], v_agg["Calls"])],
         textposition="auto",
-        textfont=dict(size=10, family="Segoe UI"),
+        textfont=dict(size=10.5, family="Segoe UI"),
         hovertemplate="<b>%{y}</b><br>Revenue: Rp %{x:.2f} M<extra></extra>"
     ))
     fig_hbar.update_layout(
         paper_bgcolor=PLOT_BG, plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color=FONT_CLR, size=10),
-        height=245, margin=dict(l=8, r=18, t=12, b=30),
+        font=dict(color=FONT_CLR, size=10.5),
+        height=230, margin=dict(l=8, r=18, t=12, b=28),
         xaxis=dict(gridcolor=GRID_CLR, title="Miliar Rp", range=[0, max_v], automargin=True),
         yaxis=dict(gridcolor="rgba(0,0,0,0)", automargin=True)
     )
     st.plotly_chart(fig_hbar, use_container_width=True, config={"displayModeBar": False})
 
-    st.markdown('<div class="panel-header">⏱️ Ringkasan Operasional YTD</div>', unsafe_allow_html=True)
+    st.markdown('<div class="panel-header">⏱️ Ringkasan Operasional &amp; Rekor Call 2026</div>', unsafe_allow_html=True)
     total_jam = df["Durasi"].sum() * 24
     total_hsd = df["HSD_L"].sum()
+    if len(df) > 0:
+        max_r = df.loc[df[rev_col].idxmax()]
+        min_r = df.loc[df[rev_col].idxmin()]
+        avg_v = df[rev_col].mean()
+        rekor_html = (
+            f'<div class="info-row"><span style="color:#94a3b8;">Tertinggi (Max &bull; {max_r["Bulan"]})</span>'
+            f'<b style="color:#4ade80;">Rp {max_r[rev_col]:,.0f}</b></div>'
+            f'<div class="info-row"><span style="color:#94a3b8;">Rata-rata per Call</span>'
+            f'<b style="color:#00e5ff;">Rp {avg_v:,.0f}</b></div>'
+            f'<div class="info-row"><span style="color:#94a3b8;">Terendah (Min &bull; {min_r["Bulan"]})</span>'
+            f'<b style="color:#facc15;">Rp {min_r[rev_col]:,.0f}</b></div>'
+        )
+    else:
+        rekor_html = ""
+
     st.markdown(
         f'<div class="info-card" style="font-size:0.84rem;" tabindex="0">'
-        f'<div class="info-row"><span style="color:#94a3b8;">Total Durasi</span><b style="color:#00e5ff;">{df["Durasi"].sum():.2f} Hr ({total_jam:,.0f} Jam)</b></div>'
-        f'<div class="info-row"><span style="color:#94a3b8;">Total HSD</span><b style="color:#ffeb3b;">{total_hsd:,.0f} Liter</b></div>'
-        f'<div class="info-row"><span style="color:#94a3b8;">Layanan</span><b style="color:#4ade80;">{len(full_df)} Full / {len(df)-len(full_df)} Partial</b></div>'
-        f'<div class="info-row"><span style="color:#94a3b8;">Lead Time</span><b style="color:#ff7b3a;">52,13 Jam (748% Cepat)</b></div>'
+        f'<div class="info-row"><span style="color:#94a3b8;">Total Durasi Layanan</span><b style="color:#00e5ff;">{df["Durasi"].sum():.2f} Hr ({total_jam:,.0f} Jam)</b></div>'
+        f'<div class="info-row"><span style="color:#94a3b8;">Total Konsumsi HSD</span><b style="color:#ffeb3b;">{total_hsd:,.0f} Liter</b></div>'
+        f'<div class="info-row"><span style="color:#94a3b8;">Full Service vs Partial</span><b style="color:#4ade80;">{len(full_df)} Full / {len(df)-len(full_df)} Partial</b></div>'
+        f'<div class="info-row"><span style="color:#94a3b8;">Lead Time Saving</span><b style="color:#ff7b3a;">52,13 Jam (748% Lebih Cepat)</b></div>'
+        f'{rekor_html}'
         f'</div>',
         unsafe_allow_html=True
     )
@@ -866,7 +938,7 @@ with col_mid:
             * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
             html, body { width:100%; height:100%; margin:0; padding:0; background:#050d1a; font-family:'Segoe UI',sans-serif; overflow:hidden; }
             .wrap { position:relative; width:100%; height:100%; display:flex; flex-direction:column; border:1px solid rgba(0,229,255,0.40); border-radius:7px; overflow:hidden; }
-            #map { flex:1; width:100%; min-height:240px; background:#050d1a; }
+            #map { flex:1; width:100%; min-height:260px; background:#050d1a; }
 
             .dark-navy-tiles {
                 filter: invert(100%) hue-rotate(190deg) brightness(86%) contrast(95%) saturate(135%);
@@ -898,7 +970,7 @@ with col_mid:
             .leaflet-control-layers-separator { border-top-color: rgba(0, 229, 255, 0.3) !important; }
 
             .calc-panel {
-                position: absolute; top: 8px; right: 8px; width: 255px;
+                position: absolute; top: 10px; right: 10px; width: 270px;
                 background: linear-gradient(135deg, rgba(10, 22, 42, 0.95), rgba(16, 40, 76, 0.92), rgba(8, 18, 36, 0.95));
                 background-size: 220% 220%;
                 animation: panelGradient 14s ease-in-out infinite;
@@ -916,38 +988,38 @@ with col_mid:
                 background: linear-gradient(90deg, #0b2545, #184a88, #0b2545);
                 background-size: 200% 100%;
                 animation: panelGradient 10s ease-in-out infinite;
-                padding: 6px 9px;
+                padding: 7px 10px;
                 display:flex; justify-content:space-between; align-items:center;
                 border-bottom: 1.5px solid #00e5ff; cursor: pointer;
             }
-            .calc-body { padding: 8px; font-size: 10.5px; }
+            .calc-body { padding: 9px; font-size: 11px; }
             .cfg-box { background: rgba(0,229,255,0.08); border:1px solid rgba(0,229,255,0.35); border-radius:4px; padding:6px; margin-bottom:6px; }
-            .row2 { display:flex; justify-content:space-between; gap:5px; margin-top:3px; }
+            .row2 { display:flex; justify-content:space-between; gap:6px; margin-top:4px; }
             input, select {
                 background:#061124; color:#fff; border:1px solid #334155; border-radius:3px;
-                padding:2px 4px; font-size:10.5px; width:100%;
+                padding:3px 5px; font-size:11px; width:100%;
                 transition: border-color 0.2s ease, box-shadow 0.2s ease;
             }
             input:focus, select:focus {
                 outline: none; border-color: #00e5ff; box-shadow: 0 0 8px rgba(0,229,255,0.5);
             }
-            .wx-box { background: rgba(0,0,0,0.35); border:1px solid #334155; border-radius:4px; padding:5px; margin-bottom:6px; }
-            .wx-grid { display:flex; justify-content:space-between; text-align:center; margin-top:2px; }
+            .wx-box { background: rgba(0,0,0,0.35); border:1px solid #334155; border-radius:4px; padding:6px; margin-bottom:6px; }
+            .wx-grid { display:flex; justify-content:space-between; text-align:center; margin-top:3px; }
             .btn-sm {
-                border:none; border-radius:3px; padding:4px 5px; font-size:9.5px; font-weight:700; cursor:pointer;
+                border:none; border-radius:3px; padding:4px 6px; font-size:10px; font-weight:700; cursor:pointer;
                 transition: transform 0.15s ease, filter 0.2s ease;
             }
             .btn-sm:hover { filter: brightness(1.15); transform: translateY(-1px); }
             .btn-sm:active { transform: scale(0.94); }
-            table { width:100%; border-collapse:collapse; margin-top:5px; font-size:10.5px; }
-            td { padding:3px 2px; border-bottom:1px solid rgba(255,255,255,0.09); }
+            table { width:100%; border-collapse:collapse; margin-top:6px; font-size:11px; }
+            td { padding:3.5px 2px; border-bottom:1px solid rgba(255,255,255,0.09); }
             tr:hover td { background: rgba(0,229,255,0.08); }
             .val { text-align:right; font-weight:700; }
 
             @media (max-width: 600px) {
                 html, body { overflow-y: auto; }
                 .wrap { height: auto; }
-                #map { height: 240px; flex: none; }
+                #map { height: 250px; flex: none; }
                 .calc-panel { position: relative; top: 0; right: 0; width: 100%; margin-top: 6px; border-radius: 6px; }
             }
         </style>
@@ -957,7 +1029,7 @@ with col_mid:
             <div id="map"></div>
             <div class="calc-panel">
                 <div class="calc-hdr" onclick="toggleCalc()">
-                    <span style="color:#00e5ff; font-weight:800; font-size:11px;">⛽ NR FUEL &amp; CHARTER CALC</span>
+                    <span style="color:#00e5ff; font-weight:800; font-size:11.5px;">⛽ NR FUEL &amp; CHARTER CALC</span>
                     <span id="btn_tog" style="color:#fff; font-weight:bold;">−</span>
                 </div>
                 <div id="calc_body" class="calc-body">
@@ -1021,7 +1093,7 @@ with col_mid:
                         </div>
                     </div>
 
-                    <div class="row2" style="margin-bottom:3px;">
+                    <div class="row2" style="margin-bottom:4px;">
                         <button class="btn-sm" onclick="performUndo()" style="flex:1; background:#facc15; color:#000;">↩ UNDO</button>
                         <button class="btn-sm" onclick="performRedo()" style="flex:1; background:#22c55e; color:#fff;">REDO ↪</button>
                         <button class="btn-sm" onclick="changeRoute()" style="flex:1; background:#ef4444; color:#fff;">RESET</button>
@@ -1035,7 +1107,7 @@ with col_mid:
                         <tr><td style="color:#94a3b8;">Sewa (49 Jt/hr)</td><td id="val_cost_sewa" class="val">--</td></tr>
                         <tr style="background:rgba(0,229,255,0.14);">
                             <td style="color:#00e5ff; font-weight:800;">EST. TOTAL</td>
-                            <td id="val_total" class="val" style="color:#ff7b3a; font-size:11.5px;">--</td>
+                            <td id="val_total" class="val" style="color:#ff7b3a; font-size:12px;">--</td>
                         </tr>
                     </table>
                 </div>
@@ -1237,81 +1309,137 @@ with col_mid:
     </body>
     </html>
     """
-    components.html(map_html, height=480, scrolling=True)
+    components.html(map_html, height=530, scrolling=True)
 
-with col_right:
-    st.markdown('<div class="panel-header">📊 Komposisi Revenue</div>', unsafe_allow_html=True)
-    comp_labels = ["Biaya Sewa", "Biaya HSD"]
-    comp_vals = [df["Sewa"].sum(), df["HSD_Rp"].sum()]
-    comp_colors = ["#00e5ff", "#ff7b3a"]
-    if include_tax:
-        comp_labels.append("PBBKB 10%")
-        comp_vals.append(df["PBBKB"].sum())
-        comp_colors.append("#6366f1")
+# ==============================================================================
+# BARIS 3: MULTI-INFORMATION DISPLAY (PENGGANTI PANCA MUTU) | TREN | AKUMULASI
+# ==============================================================================
+b1, b2, b3 = st.columns([1.25, 1.35, 1.15], gap="small")
 
-    fig_pie = go.Figure(go.Pie(
-        labels=comp_labels, values=comp_vals, hole=0.42,
-        marker=dict(colors=comp_colors, line=dict(color="#050d1a", width=2)),
-        textinfo="percent", textfont=dict(color="#fff", size=11),
-        hovertemplate="<b>%{label}</b><br>Rp %{value:,.0f} (%{percent})<extra></extra>"
-    ))
-    fig_pie.update_layout(
-        paper_bgcolor=PLOT_BG, plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color=FONT_CLR, size=10),
-        height=245, margin=dict(l=10, r=10, t=10, b=35),
-        legend=dict(orientation="h", yanchor="top", y=-0.05, xanchor="center", x=0.5)
-    )
-    st.plotly_chart(fig_pie, use_container_width=True, config={"displayModeBar": False})
+with b1:
+    st.markdown('<div class="panel-header">🛰️ Dispatch Intelligence (Multi-Info Display)</div>', unsafe_allow_html=True)
+    mid_t1, mid_t2, mid_t3 = st.tabs(["⚡ Ready & STS", "⛽ Eco-Dispatch", "💰 Group Saving"])
 
-    st.markdown('<div class="panel-header">🏆 Rekor Call 2026</div>', unsafe_allow_html=True)
-    if len(df) > 0:
-        max_r = df.loc[df[rev_col].idxmax()]
-        min_r = df.loc[df[rev_col].idxmin()]
-        avg_v = df[rev_col].mean()
+    # --- MID TAB 1: LIVE DISPATCH WINDOW & NEXT STS COUNTDOWN ---
+    with mid_t1:
+        today_ref = date.today()
+        sts_tmp = st.session_state.df_sts.copy()
+        next_sts_html = '<div style="color:#94a3b8; font-size:0.82rem;">Belum ada jadwal STS mendatang.</div>'
+        window_badge = '<span class="mid-badge"><span class="live-dot"></span> ARMADA STANDBY OPEN</span>'
+
+        if not sts_tmp.empty:
+            sts_tmp["Tanggal_Mulai"] = pd.to_datetime(sts_tmp["Tanggal_Mulai"]).dt.date
+            sts_tmp["Tanggal_Selesai"] = pd.to_datetime(sts_tmp["Tanggal_Selesai"]).dt.date
+            sts_tmp = sts_tmp.sort_values("Tanggal_Mulai")
+            active_now = sts_tmp[(sts_tmp["Tanggal_Mulai"] <= today_ref) & (sts_tmp["Tanggal_Selesai"] >= today_ref)]
+            upcoming = sts_tmp[sts_tmp["Tanggal_Mulai"] > today_ref]
+
+            if not active_now.empty:
+                cur = active_now.iloc[0]
+                window_badge = '<span class="mid-badge" style="background:rgba(239,68,68,0.18);color:#fca5a5;border-color:#ef4444;">🔴 STS NR SEDANG BERLANGSUNG</span>'
+                next_sts_html = (
+                    f'<div class="mid-highlight">'
+                    f'<div style="font-size:0.72rem; color:#fca5a5; font-weight:700;">LOCKED — OPERASI STS FSRU NR</div>'
+                    f'<div style="font-size:0.92rem; font-weight:800; color:#fff;">🚢 {cur["Keterangan"]}</div>'
+                    f'<div style="font-size:0.76rem; color:#cbd5e1;">Selesai: {cur["Tanggal_Selesai"].strftime("%d %b %Y")} (Standby Penuh)</div>'
+                    f'</div>'
+                )
+            elif not upcoming.empty:
+                nxt = upcoming.iloc[0]
+                days_to_sts = (nxt["Tanggal_Mulai"] - today_ref).days
+                safe_days = max(0, days_to_sts - 1)
+                if safe_days >= 3:
+                    win_txt = f'Bisa Full Service s/d {(nxt["Tanggal_Mulai"] - timedelta(days=1)).strftime("%d %b")}'
+                    win_clr = "#34d399"
+                elif safe_days >= 1:
+                    win_txt = f'Window sempit ({safe_days} hr) — Disarankan Berthing Only'
+                    win_clr = "#fbbf24"
+                else:
+                    win_txt = "H-1 STS NR — Armada Standby"
+                    win_clr = "#f87171"
+                next_sts_html = (
+                    f'<div class="mid-highlight">'
+                    f'<div style="display:flex; justify-content:space-between; font-size:0.72rem; color:#7dd3fc; font-weight:700;">'
+                    f'<span>NEXT CARGO STS NR</span><span>H-{days_to_sts}</span></div>'
+                    f'<div style="font-size:0.90rem; font-weight:800; color:#fff; margin-top:2px;">🚢 {nxt["Keterangan"]}</div>'
+                    f'<div style="font-size:0.76rem; color:#cbd5e1;">ETA: {nxt["Tanggal_Mulai"].strftime("%d %b")} – {nxt["Tanggal_Selesai"].strftime("%d %b %Y")}</div>'
+                    f'<div style="font-size:0.75rem; color:{win_clr}; font-weight:700; margin-top:4px;">⚡ {win_txt}</div>'
+                    f'</div>'
+                )
+
         st.markdown(
-            f'<div class="info-card" style="font-size:0.82rem;" tabindex="0">'
-            f'<div class="info-row" style="display:block;">'
-            f'<span style="color:#94a3b8; font-size:0.74rem;">TERTINGGI (MAX) &bull; {max_r["Bulan"]}</span><br>'
-            f'<b style="color:#4ade80; font-size:0.92rem;">Rp {max_r[rev_col]:,.0f}</b>'
-            f'<span style="color:#cbd5e1; font-size:0.73rem;"> ({max_r["Kapal"].replace("TB. ","")})</span>'
-            f'</div>'
-            f'<div class="info-row" style="display:block;">'
-            f'<span style="color:#94a3b8; font-size:0.74rem;">RATA-RATA PER CALL</span><br>'
-            f'<b style="color:#00e5ff; font-size:0.92rem;">Rp {avg_v:,.0f}</b>'
-            f'</div>'
-            f'<div class="info-row" style="display:block;">'
-            f'<span style="color:#94a3b8; font-size:0.74rem;">TERENDAH (MIN) &bull; {min_r["Bulan"]}</span><br>'
-            f'<b style="color:#facc15; font-size:0.92rem;">Rp {min_r[rev_col]:,.0f}</b>'
-            f'<span style="color:#cbd5e1; font-size:0.73rem;"> ({min_r["Kapal"].replace("TB. ","")})</span>'
-            f'</div></div>',
+            f'<div class="mid-box" style="font-size:0.80rem;">'
+            f'<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">'
+            f'{window_badge}<span style="font-size:0.72rem; color:#94a3b8;">PM 57/2015</span></div>'
+            f'{next_sts_html}'
+            f'<div class="info-row"><span style="color:#94a3b8;">Total Daya Armada</span><b style="color:#00e5ff;">12.000 HP (Min 11.000 HP)</b></div>'
+            f'<div class="info-row"><span style="color:#94a3b8;">Bollard Pull / Safety</span><b style="color:#4ade80;">≥125 Ton &bull; Zero Accident</b></div>'
+            f'</div>',
             unsafe_allow_html=True
         )
 
-# ==============================================================================
-# BARIS 3: 3 GRAFIK BAWAH
-# ==============================================================================
-b1, b2, b3 = st.columns([1.05, 1.45, 1.2], gap="small")
+    # --- MID TAB 2: ECO-DISPATCH RANKING (REKOMENDASI KAPAL PALING HEMAT BBM) ---
+    with mid_t2:
+        if len(df) > 0:
+            eco = df.groupby("Kapal", as_index=False).agg(
+                Durasi=("Durasi", "sum"),
+                HSD_L=("HSD_L", "sum"),
+                Rev=(rev_col, "sum")
+            )
+            eco["L_per_Hari"] = eco["HSD_L"] / eco["Durasi"].replace(0, 1)
+            eco = eco.sort_values("L_per_Hari").reset_index(drop=True)
+            best_v = eco.iloc[0]
+            avg_hsd_hrg = df["Harga_HSD"].mean()
+            last_hsd_hrg = df.iloc[-1]["Harga_HSD"]
+            hsd_diff_pct = ((last_hsd_hrg - avg_hsd_hrg) / avg_hsd_hrg * 100) if avg_hsd_hrg > 0 else 0
+            hsd_clr = "#4ade80" if hsd_diff_pct <= 0 else "#f87171"
 
-with b1:
-    st.markdown('<div class="panel-header">🎯 Panca Mutu Achievement (%)</div>', unsafe_allow_html=True)
-    categories = ["Quality<br>(Avail)", "Cost<br>(Rev)", "Delivery<br>(SLA)", "Safety<br>(SOLAS)", "Morale<br>(Team)"]
-    scores = [100, 100, 98, 100, 95]
-    fig_radar = go.Figure(go.Scatterpolar(
-        r=scores + [scores[0]], theta=categories + [categories[0]],
-        fill="toself", fillcolor="rgba(255, 123, 58, 0.28)",
-        line=dict(color="#ff7b3a", width=2), marker=dict(color="#00e5ff", size=5)
-    ))
-    fig_radar.update_layout(
-        paper_bgcolor=PLOT_BG, plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color=FONT_CLR, size=9.5),
-        polar=dict(
-            bgcolor="rgba(0,0,0,0)",
-            radialaxis=dict(visible=True, range=[0, 105], gridcolor=GRID_CLR, tickfont=dict(size=8)),
-            angularaxis=dict(gridcolor=GRID_CLR, tickfont=dict(size=9.5))
-        ),
-        height=275, margin=dict(l=55, r=55, t=42, b=42), showlegend=False
-    )
-    st.plotly_chart(fig_radar, use_container_width=True, config={"displayModeBar": False})
+            eco_rows = []
+            for idx_e, er in eco.iterrows():
+                medal = "🥇" if idx_e == 0 else ("🥈" if idx_e == 1 else "🥉")
+                eco_rows.append(
+                    f'<div class="info-row">'
+                    f'<span style="color:#e2e8f0;">{medal} {er["Kapal"].replace("TB. ","")}</span>'
+                    f'<b style="color:#ffeb3b;">{er["L_per_Hari"]:,.0f} L/Hr</b>'
+                    f'</div>'
+                )
+            st.markdown(
+                f'<div class="mid-box" style="font-size:0.80rem;">'
+                f'<div class="mid-highlight" style="margin-top:0;">'
+                f'<div style="font-size:0.71rem; color:#4ade80; font-weight:700;">🌿 REKOMENDASI ECO-DISPATCH</div>'
+                f'<div style="font-size:0.88rem; font-weight:800; color:#fff;">{best_v["Kapal"]} ({best_v["L_per_Hari"]:,.0f} L/hari)</div>'
+                f'</div>'
+                f'{"".join(eco_rows)}'
+                f'<div class="info-row"><span style="color:#94a3b8;">Harga HSD Terakhir vs Avg</span>'
+                f'<b style="color:{hsd_clr};">Rp {last_hsd_hrg:,.0f}/L ({hsd_diff_pct:+.1f}%)</b></div>'
+                f'</div>',
+                unsafe_allow_html=True
+            )
+        else:
+            st.info("Pilih minimal 1 armada pada filter.")
+
+    # --- MID TAB 3: SUNK COST RECOVERY & PERTAMINA GROUP SAVING ---
+    with mid_t3:
+        spot_benchmark_per_call = 600_000_000
+        spot_total = spot_benchmark_per_call * total_calls
+        group_saving = max(0, spot_total - total_rev)
+        saving_pct = (group_saving / spot_total * 100) if spot_total > 0 else 0
+        sewa_murni = df["Sewa"].sum()
+        standby_days_recovered = sewa_murni / 31_800_000 if sewa_murni > 0 else 0
+
+        st.markdown(
+            f'<div class="mid-box" style="font-size:0.80rem;">'
+            f'<div class="mid-highlight" style="margin-top:0;">'
+            f'<div style="font-size:0.71rem; color:#7dd3fc; font-weight:700;">💎 PERTAMINA GROUP COST AVOIDANCE</div>'
+            f'<div style="font-size:1.05rem; font-weight:800; color:#4ade80;">Rp {group_saving/1e9:,.2f} Miliar</div>'
+            f'<div style="font-size:0.72rem; color:#cbd5e1;">Hemat {saving_pct:.1f}% vs Spot Market (Rp 600 Jt/call)</div>'
+            f'<div class="mid-bar-bg"><div class="mid-bar-fill" style="width:{min(100, saving_pct):.0f}%;"></div></div>'
+            f'</div>'
+            f'<div class="info-row"><span style="color:#94a3b8;">Sewa Murni (Excl. HSD)</span><b style="color:#00e5ff;">Rp {sewa_murni/1e9:,.2f} M</b></div>'
+            f'<div class="info-row"><span style="color:#94a3b8;">Sunk Cost Recovered</span><b style="color:#ff7b3a;">≈ {standby_days_recovered:.0f} Hari Standby</b></div>'
+            f'</div>',
+            unsafe_allow_html=True
+        )
 
 monthly = df.groupby(["Urutan", "Bulan"], as_index=False).agg(
     Rev=(rev_col, "sum"), Calls=("Kapal", "count")
@@ -1430,7 +1558,6 @@ with tab_cek:
             unsafe_allow_html=True
         )
 
-    # --- VISUALISASI 1: INTERACTIVE GANTT TIMELINE JADWAL STS vs AJUAN ARMAKUNG ---
     sts_df_vis = st.session_state.df_sts.copy()
     if not sts_df_vis.empty:
         sts_df_vis["Tanggal_Mulai"] = pd.to_datetime(sts_df_vis["Tanggal_Mulai"])
@@ -1489,7 +1616,6 @@ with tab_cek:
         )
         st.plotly_chart(fig_gantt, use_container_width=True, config={"displayModeBar": False})
 
-        # --- VISUALISASI 2: KARTU CARGO SCHEDULE NEON (SINGLE-LINE HTML) ---
         today_dt = date.today()
         cards_parts = ['<div class="sts-grid">']
         for _, r in sts_df_vis.iterrows():
