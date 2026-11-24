@@ -289,7 +289,19 @@ header[data-testid="stHeader"] {
     border: 1px solid rgba(0, 229, 255, 0.40);
     border-radius: 8px;
     padding: 11px 12px;
-    min-height: 224px;
+    height: 230px;
+    overflow-y: auto;
+}
+.mid-box::-webkit-scrollbar {
+    width: 5px;
+}
+.mid-box::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 4px;
+}
+.mid-box::-webkit-scrollbar-thumb {
+    background: rgba(0, 229, 255, 0.45);
+    border-radius: 4px;
 }
 .mid-badge {
     display: inline-flex;
@@ -318,18 +330,37 @@ header[data-testid="stHeader"] {
     padding: 8px 10px;
     margin: 7px 0;
 }
-.mid-bar-bg {
-    width: 100%;
-    height: 7px;
-    background: rgba(255, 255, 255, 0.10);
-    border-radius: 4px;
-    overflow: hidden;
-    margin-top: 4px;
+.call-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 5px;
+    transition: background 0.2s ease, padding-left 0.2s ease;
 }
-.mid-bar-fill {
-    height: 100%;
-    border-radius: 4px;
-    background: linear-gradient(90deg, #00e5ff, #38bdf8, #10b981);
+.call-item:hover {
+    background: rgba(0, 229, 255, 0.12);
+    padding-left: 10px;
+}
+.call-item:last-child { border-bottom: none; }
+.call-pill-full {
+    font-size: 0.66rem;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 8px;
+    background: rgba(16, 185, 129, 0.20);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.4);
+}
+.call-pill-part {
+    font-size: 0.66rem;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 8px;
+    background: rgba(245, 158, 11, 0.20);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.4);
 }
 
 .panel-header {
@@ -1312,15 +1343,15 @@ with col_mid:
     components.html(map_html, height=530, scrolling=True)
 
 # ==============================================================================
-# BARIS 3: MULTI-INFORMATION DISPLAY (PENGGANTI PANCA MUTU) | TREN | AKUMULASI
+# BARIS 3: MULTI-INFORMATION DISPLAY (2 TAB) | TREN BULANAN | AKUMULASI YTD
 # ==============================================================================
 b1, b2, b3 = st.columns([1.25, 1.35, 1.15], gap="small")
 
 with b1:
     st.markdown('<div class="panel-header">🛰️ Dispatch Intelligence (Multi-Info Display)</div>', unsafe_allow_html=True)
-    mid_t1, mid_t2, mid_t3 = st.tabs(["⚡ Ready & STS", "⛽ Eco-Dispatch", "💰 Group Saving"])
+    mid_t1, mid_t2 = st.tabs(["⚡ Ready & STS", f"📋 Pelayanan ({len(df)} Call)"])
 
-    # --- MID TAB 1: LIVE DISPATCH WINDOW & NEXT STS COUNTDOWN ---
+    # --- MID TAB 1: READY & STS ---
     with mid_t1:
         today_ref = date.today()
         sts_tmp = st.session_state.df_sts.copy()
@@ -1378,68 +1409,41 @@ with b1:
             unsafe_allow_html=True
         )
 
-    # --- MID TAB 2: ECO-DISPATCH RANKING (REKOMENDASI KAPAL PALING HEMAT BBM) ---
+    # --- MID TAB 2: LIST PELAYANAN ARMAKUNG YANG SUDAH DILAKSANAKAN ---
     with mid_t2:
         if len(df) > 0:
-            eco = df.groupby("Kapal", as_index=False).agg(
-                Durasi=("Durasi", "sum"),
-                HSD_L=("HSD_L", "sum"),
-                Rev=(rev_col, "sum")
-            )
-            eco["L_per_Hari"] = eco["HSD_L"] / eco["Durasi"].replace(0, 1)
-            eco = eco.sort_values("L_per_Hari").reset_index(drop=True)
-            best_v = eco.iloc[0]
-            avg_hsd_hrg = df["Harga_HSD"].mean()
-            last_hsd_hrg = df.iloc[-1]["Harga_HSD"]
-            hsd_diff_pct = ((last_hsd_hrg - avg_hsd_hrg) / avg_hsd_hrg * 100) if avg_hsd_hrg > 0 else 0
-            hsd_clr = "#4ade80" if hsd_diff_pct <= 0 else "#f87171"
-
-            eco_rows = []
-            for idx_e, er in eco.iterrows():
-                medal = "🥇" if idx_e == 0 else ("🥈" if idx_e == 1 else "🥉")
-                eco_rows.append(
-                    f'<div class="info-row">'
-                    f'<span style="color:#e2e8f0;">{medal} {er["Kapal"].replace("TB. ","")}</span>'
-                    f'<b style="color:#ffeb3b;">{er["L_per_Hari"]:,.0f} L/Hr</b>'
+            df_hist = df.iloc[::-1].reset_index(drop=True)
+            items_html = []
+            for idx_h, row_h in df_hist.iterrows():
+                call_no = len(df_hist) - idx_h
+                kapal_short = str(row_h["Kapal"]).replace("TB. ", "")
+                is_full = row_h["Durasi"] > 2.0
+                pill_cls = "call-pill-full" if is_full else "call-pill-part"
+                pill_lbl = "Full" if is_full else "Berthing"
+                rev_val = row_h[rev_col]
+                items_html.append(
+                    f'<div class="call-item">'
+                    f'<div>'
+                    f'<div style="font-size:0.79rem; font-weight:700; color:#f8fafc;">#{call_no} &bull; {kapal_short} <span class="{pill_cls}">{pill_lbl}</span></div>'
+                    f'<div style="font-size:0.70rem; color:#94a3b8;">{row_h["Delivery"]} s/d {row_h["Redelivery"]} &bull; {row_h["Durasi"]:.2f} hr</div>'
+                    f'</div>'
+                    f'<div style="text-align:right;">'
+                    f'<div style="font-size:0.80rem; font-weight:800; color:#00e5ff;">Rp {rev_val/1e6:,.1f} Jt</div>'
+                    f'<div style="font-size:0.68rem; color:#ffeb3b;">{row_h["HSD_L"]:,.0f} L HSD</div>'
+                    f'</div>'
                     f'</div>'
                 )
             st.markdown(
-                f'<div class="mid-box" style="font-size:0.80rem;">'
-                f'<div class="mid-highlight" style="margin-top:0;">'
-                f'<div style="font-size:0.71rem; color:#4ade80; font-weight:700;">🌿 REKOMENDASI ECO-DISPATCH</div>'
-                f'<div style="font-size:0.88rem; font-weight:800; color:#fff;">{best_v["Kapal"]} ({best_v["L_per_Hari"]:,.0f} L/hari)</div>'
-                f'</div>'
-                f'{"".join(eco_rows)}'
-                f'<div class="info-row"><span style="color:#94a3b8;">Harga HSD Terakhir vs Avg</span>'
-                f'<b style="color:{hsd_clr};">Rp {last_hsd_hrg:,.0f}/L ({hsd_diff_pct:+.1f}%)</b></div>'
-                f'</div>',
+                f'<div class="mid-box" style="padding:7px 9px;">{"".join(items_html)}</div>',
                 unsafe_allow_html=True
             )
         else:
-            st.info("Pilih minimal 1 armada pada filter.")
-
-    # --- MID TAB 3: SUNK COST RECOVERY & PERTAMINA GROUP SAVING ---
-    with mid_t3:
-        spot_benchmark_per_call = 600_000_000
-        spot_total = spot_benchmark_per_call * total_calls
-        group_saving = max(0, spot_total - total_rev)
-        saving_pct = (group_saving / spot_total * 100) if spot_total > 0 else 0
-        sewa_murni = df["Sewa"].sum()
-        standby_days_recovered = sewa_murni / 31_800_000 if sewa_murni > 0 else 0
-
-        st.markdown(
-            f'<div class="mid-box" style="font-size:0.80rem;">'
-            f'<div class="mid-highlight" style="margin-top:0;">'
-            f'<div style="font-size:0.71rem; color:#7dd3fc; font-weight:700;">💎 PERTAMINA GROUP COST AVOIDANCE</div>'
-            f'<div style="font-size:1.05rem; font-weight:800; color:#4ade80;">Rp {group_saving/1e9:,.2f} Miliar</div>'
-            f'<div style="font-size:0.72rem; color:#cbd5e1;">Hemat {saving_pct:.1f}% vs Spot Market (Rp 600 Jt/call)</div>'
-            f'<div class="mid-bar-bg"><div class="mid-bar-fill" style="width:{min(100, saving_pct):.0f}%;"></div></div>'
-            f'</div>'
-            f'<div class="info-row"><span style="color:#94a3b8;">Sewa Murni (Excl. HSD)</span><b style="color:#00e5ff;">Rp {sewa_murni/1e9:,.2f} M</b></div>'
-            f'<div class="info-row"><span style="color:#94a3b8;">Sunk Cost Recovered</span><b style="color:#ff7b3a;">≈ {standby_days_recovered:.0f} Hari Standby</b></div>'
-            f'</div>',
-            unsafe_allow_html=True
-        )
+            st.markdown(
+                '<div class="mid-box" style="color:#94a3b8; font-size:0.82rem; display:flex; align-items:center; justify-content:center;">'
+                'Belum ada data pelayanan sesuai filter.'
+                '</div>',
+                unsafe_allow_html=True
+            )
 
 monthly = df.groupby(["Urutan", "Bulan"], as_index=False).agg(
     Rev=(rev_col, "sum"), Calls=("Kapal", "count")
