@@ -1,6 +1,7 @@
 import os
 import re
 import io
+import math
 import base64
 from datetime import date, datetime, timedelta
 import streamlit as st
@@ -35,7 +36,7 @@ st.set_page_config(
 )
 
 # ==============================================================================
-# CUSTOM CSS: DYNAMIC SLOW GRADIENT + LIVING ANIMATIONS + RESPONSIVE
+# CUSTOM CSS: DYNAMIC SLOW GRADIENT + LIVING ANIMATIONS + STS CARGO CARDS
 # ==============================================================================
 st.markdown("""
 <style>
@@ -63,10 +64,6 @@ st.markdown("""
         85%  { opacity: 1; }
         100% { left: 108%; opacity: 0; }
     }
-    @keyframes ambientGlow {
-        0%, 100% { opacity: 0.45; transform: scale(1); }
-        50%      { opacity: 0.85; transform: scale(1.06); }
-    }
     @keyframes amberGlow {
         0%, 100% { text-shadow: 0 0 10px rgba(255, 123, 58, 0.45); }
         50%      { text-shadow: 0 0 22px rgba(255, 145, 77, 0.92), 0 0 34px rgba(255, 123, 58, 0.40); }
@@ -82,8 +79,8 @@ st.markdown("""
         }
     }
     @keyframes statusPulse {
-        0%, 100% { transform: scale(1); opacity: 1; }
-        50%      { transform: scale(1.008); opacity: 0.96; }
+        0%, 100% { transform: scale(1); }
+        50%      { transform: scale(1.006); }
     }
 
     /* Background utama dengan gradasi maritim bergerak dinamis dan pelan */
@@ -185,7 +182,7 @@ st.markdown("""
         margin-top: 4px;
     }
 
-    /* ==================== KPI CARDS DENGAN GRADASI BERGERAK ==================== */
+    /* ==================== KPI CARDS ==================== */
     .kpi-box {
         position: relative;
         overflow: hidden;
@@ -294,8 +291,8 @@ st.markdown("""
         font-weight: 700;
         color: #67e8f9;
         letter-spacing: 0.4px;
-        margin-bottom: 6px;
-        margin-top: 4px;
+        margin-bottom: 8px;
+        margin-top: 6px;
         border-radius: 0 5px 5px 0;
         transition: border-left-width 0.2s ease, color 0.2s ease, box-shadow 0.25s ease;
     }
@@ -305,33 +302,100 @@ st.markdown("""
         box-shadow: inset 0 0 12px rgba(0, 229, 255, 0.18);
     }
 
-    /* Status Alert Card untuk Pengecekan Jadwal STS */
-    .status-card {
-        border-radius: 8px;
-        padding: 14px 16px;
+    /* ==================== KARTU JADWAL CARGO STS (GLASS NEON) ==================== */
+    .sts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(225px, 1fr));
+        gap: 10px;
         margin-top: 8px;
         margin-bottom: 10px;
+    }
+    .sts-card {
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(135deg, rgba(10, 28, 56, 0.88), rgba(16, 46, 84, 0.80));
+        border: 1px solid rgba(0, 229, 255, 0.35);
+        border-radius: 8px;
+        padding: 10px 12px;
+        transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+    .sts-card:hover {
+        transform: translateY(-3px);
+        border-color: #00e5ff;
+        box-shadow: 0 6px 20px rgba(0, 229, 255, 0.28);
+    }
+    .sts-card.sts-conflict {
+        border-color: #ef4444;
+        background: linear-gradient(135deg, rgba(127, 29, 29, 0.42), rgba(30, 20, 36, 0.88));
+        box-shadow: 0 0 16px rgba(239, 68, 68, 0.32);
+    }
+    .sts-card.sts-partial {
+        border-color: #f59e0b;
+        background: linear-gradient(135deg, rgba(120, 53, 15, 0.40), rgba(20, 30, 52, 0.88));
+        box-shadow: 0 0 16px rgba(245, 158, 11, 0.28);
+    }
+    .sts-badge-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
+    }
+    .sts-date-pill {
+        background: rgba(0, 229, 255, 0.18);
+        color: #67e8f9;
+        border: 1px solid rgba(0, 229, 255, 0.45);
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.74rem;
+        font-weight: 700;
+    }
+    .sts-tag {
+        font-size: 0.70rem;
+        font-weight: 700;
+        padding: 2px 7px;
+        border-radius: 10px;
+    }
+    .sts-tag-upcoming { background: rgba(56, 189, 248, 0.18); color: #7dd3fc; }
+    .sts-tag-active   { background: rgba(255, 123, 58, 0.25); color: #fdba74; }
+    .sts-tag-done     { background: rgba(148, 163, 184, 0.18); color: #94a3b8; }
+    .sts-vessel {
+        font-size: 0.90rem;
+        font-weight: 700;
+        color: #f8fafc;
+        margin-bottom: 2px;
+    }
+    .sts-window {
+        font-size: 0.76rem;
+        color: #94a3b8;
+    }
+
+    /* ==================== STATUS ALERT CARD (3 LEVEL KEPUTUSAN) ==================== */
+    .status-card {
+        border-radius: 9px;
+        padding: 15px 18px;
+        margin-top: 10px;
+        margin-bottom: 12px;
         font-size: 0.92rem;
         line-height: 1.55;
         animation: statusPulse 4s ease-in-out infinite;
     }
     .status-safe {
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.16), rgba(6, 78, 59, 0.24));
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(6, 78, 59, 0.28));
         border: 1.5px solid #10b981;
         color: #d1fae5;
-        box-shadow: 0 0 18px rgba(16, 185, 129, 0.22);
+        box-shadow: 0 0 20px rgba(16, 185, 129, 0.24);
     }
     .status-warn {
-        background: linear-gradient(135deg, rgba(245, 158, 11, 0.18), rgba(120, 53, 15, 0.26));
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.20), rgba(120, 53, 15, 0.30));
         border: 1.5px solid #f59e0b;
         color: #fef3c7;
-        box-shadow: 0 0 18px rgba(245, 158, 11, 0.26);
+        box-shadow: 0 0 20px rgba(245, 158, 11, 0.28);
     }
     .status-danger {
-        background: linear-gradient(135deg, rgba(239, 68, 68, 0.20), rgba(127, 29, 29, 0.28));
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.22), rgba(127, 29, 29, 0.34));
         border: 1.5px solid #ef4444;
         color: #fee2e2;
-        box-shadow: 0 0 20px rgba(239, 68, 68, 0.30);
+        box-shadow: 0 0 22px rgba(239, 68, 68, 0.34);
     }
 
     div[data-testid="stPlotlyChart"] {
@@ -376,7 +440,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==============================================================================
-# HELPER PARSER PDF CARGO SCHEDULE (FORMAT NUSANTARA REGAS) & CEK BENTROK
+# HELPER PARSER PDF CARGO SCHEDULE (FORMAT NUSANTARA REGAS) & CEK BENTROK 3 LEVEL
 # ==============================================================================
 MONTH_MAP_ID_EN = {
     "jan": 1, "januari": 1, "january": 1,
@@ -394,12 +458,9 @@ MONTH_MAP_ID_EN = {
 }
 
 def extract_sts_from_pdf(uploaded_file, default_year=2026, default_sts_days=3):
-    """
-    Membaca jadwal STS dari PDF Cargo Schedule PT Nusantara Regas (format kolom ETA DD-Mon
-    seperti '06-Nov', '04-Dec' beserta nama LNGC & Cargo No.) maupun format tanggal standar.
-    """
+    """Membaca jadwal Cargo STS dari PDF PT Nusantara Regas (kolom ETA DD-Mon) maupun format standar."""
     if not HAS_PDFPLUMBER:
-        return [], "Library `pdfplumber` belum terpasang. Pastikan `pdfplumber` ada di requirements.txt."
+        return [], "Library `pdfplumber` belum terpasang. Pastikan `pdfplumber>=0.10.0` ada di requirements.txt."
 
     extracted = []
     seen_keys = set()
@@ -418,7 +479,6 @@ def extract_sts_from_pdf(uploaded_file, default_year=2026, default_sts_days=3):
                 yr_match = re.search(r'\b(202\d|203\d)\b', txt)
                 doc_year = int(yr_match.group(1)) if yr_match else int(default_year)
 
-                # --- METODE 1: Baca Tabel Terstruktur (Cargo Schedule NR) ---
                 tables = page.extract_tables() or []
                 for tbl in tables:
                     if not tbl or len(tbl) < 2:
@@ -488,7 +548,6 @@ def extract_sts_from_pdf(uploaded_file, default_year=2026, default_sts_days=3):
                                     })
                                 break
 
-                # --- METODE 2: Scan Baris Teks (Fallback jika PDF tidak terbaca sebagai grid tabel) ---
                 for raw_line in txt.splitlines():
                     line = " ".join(raw_line.split())
                     if not line:
@@ -496,29 +555,6 @@ def extract_sts_from_pdf(uploaded_file, default_year=2026, default_sts_days=3):
                     low = line.lower()
                     if any(skip in low for skip in ["based on mom", "delivery status", "cargo schedule", "created by", "note:"]):
                         continue
-
-                    range_pat = re.compile(
-                        r'(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})\s*(?:-|–|s/d|sd|to|hingga)\s*(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})',
-                        re.IGNORECASE
-                    )
-                    for m in range_pat.finditer(line):
-                        d1, m1, y1, d2, m2, y2 = map(int, m.groups())
-                        y1 = y1 + 2000 if y1 < 100 else y1
-                        y2 = y2 + 2000 if y2 < 100 else y2
-                        try:
-                            dt1, dt2 = date(y1, m1, d1), date(y2, m2, d2)
-                            if dt2 < dt1:
-                                dt1, dt2 = dt2, dt1
-                            if not any(k[0] == dt1 for k in seen_keys):
-                                seen_keys.add((dt1, dt2, ""))
-                                extracted.append({
-                                    "Tanggal_Mulai": dt1,
-                                    "Tanggal_Selesai": dt2,
-                                    "Keterangan": f"STS FSRU NR (Scan PDF Hal. {page_idx})",
-                                    "Sumber": uploaded_file.name
-                                })
-                        except ValueError:
-                            pass
 
                     for m in eta_dd_mon_pat.finditer(line):
                         d_str, mon_str = m.groups()
@@ -556,7 +592,6 @@ def extract_sts_from_pdf(uploaded_file, default_year=2026, default_sts_days=3):
                             "Keterangan": ket,
                             "Sumber": uploaded_file.name
                         })
-
     except Exception as e:
         return [], f"Gagal memindai PDF: {e}"
 
@@ -564,17 +599,25 @@ def extract_sts_from_pdf(uploaded_file, default_year=2026, default_sts_days=3):
     return extracted, raw_text_all
 
 
-def check_sts_conflict(req_start: date, req_end: date, sts_df: pd.DataFrame):
+def check_sts_availability(req_start: date, durasi_hari: float, sts_df: pd.DataFrame):
     """
-    Mengecek irisan antara tanggal ajuan ARMAKUNG (req_start..req_end)
-    dengan jadwal STS FSRU NR di sts_df.
+    Logika 3 Keputusan Operasional untuk Input 1 (Pre-Check Ajuan):
+    - Input hanya: Tanggal Mulai Ajuan + Durasi (Hari).
+    - Output:
+      1) 'BISA'          : Tidak ada irisan hari dengan jadwal STS FSRU NR -> Full Service (Berthing & Unberthing).
+      2) 'BERTHING_ONLY' : Hari mulai ajuan aman, namun hari lanjutan beririsan dengan jadwal STS NR -> Hanya Assist Berthing Saja.
+      3) 'TIDAK_BISA'    : Tanggal mulai ajuan jatuh tepat pada hari STS FSRU NR -> Tidak Bisa Sama Sekali.
     """
-    if sts_df is None or sts_df.empty:
-        return "SAFE", [], set()
+    span_days = max(1, int(math.ceil(durasi_hari)))
+    req_end = req_start + timedelta(days=span_days - 1)
+    req_days = {req_start + timedelta(days=i) for i in range(span_days)}
 
-    req_days = {req_start + timedelta(days=i) for i in range((req_end - req_start).days + 1)}
+    if sts_df is None or sts_df.empty:
+        return "BISA", req_end, [], set()
+
     conflicts = []
     overlap_days_all = set()
+    start_blocked = False
 
     for _, row in sts_df.iterrows():
         s_start = pd.to_datetime(row["Tanggal_Mulai"]).date()
@@ -583,6 +626,8 @@ def check_sts_conflict(req_start: date, req_end: date, sts_df: pd.DataFrame):
         inter = req_days.intersection(sts_days)
         if inter:
             overlap_days_all.update(inter)
+            if req_start in sts_days:
+                start_blocked = True
             conflicts.append({
                 "STS_Mulai": s_start,
                 "STS_Selesai": s_end,
@@ -591,11 +636,10 @@ def check_sts_conflict(req_start: date, req_end: date, sts_df: pd.DataFrame):
             })
 
     if not conflicts:
-        return "SAFE", [], set()
-
-    if req_start in overlap_days_all and len(req_days) == 1:
-        return "CONFLICT_FULL", conflicts, overlap_days_all
-    return "BERTHING_ONLY", conflicts, overlap_days_all
+        return "BISA", req_end, [], set()
+    if start_blocked:
+        return "TIDAK_BISA", req_end, conflicts, overlap_days_all
+    return "BERTHING_ONLY", req_end, conflicts, overlap_days_all
 
 
 # ==============================================================================
@@ -630,7 +674,6 @@ INITIAL_DATA = [
     {"Bulan": "Okt", "Kapal": "TB. MEDELIN PARTNER", "Delivery": "23/10/2026", "Redelivery": "25/10/2026", "Durasi": 1.60, "HSD_L": 4050, "Harga_HSD": 17755, "Sewa": 78604167, "HSD_Rp": 71907750, "PBBKB": 6907275},
 ]
 
-# Baseline jadwal dari Cargo Schedule Nov - Dec 2026 (MoM 16 Nov 2026)
 INITIAL_STS_SCHEDULE = [
     {"Tanggal_Mulai": date(2026, 11, 6),  "Tanggal_Selesai": date(2026, 11, 8),  "Keterangan": "STS Prima Concord (LN42)", "Sumber": "Cargo Schedule Nov-Dec 2026"},
     {"Tanggal_Mulai": date(2026, 11, 13), "Tanggal_Selesai": date(2026, 11, 15), "Keterangan": "STS SC Serenity (LN43)",   "Sumber": "Cargo Schedule Nov-Dec 2026"},
@@ -672,7 +715,7 @@ with st.sidebar:
     sel_cats = st.multiselect("Kategori Layanan:", ["Full Service", "Berthing Only"], default=["Full Service", "Berthing Only"])
 
     st.divider()
-    st.markdown("### 📂 Muat Data dari CSV")
+    st.markdown("### 📂 Muat Data Rekap dari CSV")
     uploaded_csv = st.file_uploader("Upload CSV hasil ekspor sebelumnya:", type=["csv"])
     if uploaded_csv is not None:
         try:
@@ -1335,72 +1378,162 @@ with b3:
     st.plotly_chart(fig_cum, use_container_width=True, config={"displayModeBar": False})
 
 # ==============================================================================
-# BARIS 4: CEK BENTROK JADWAL AJUAN ARMAKUNG vs JADWAL STS FSRU NR (UPLOAD PDF)
+# BARIS 4: INPUT 1 — CEK BENTROK AJUAN & VISUALISASI JADWAL CARGO STS FSRU NR
 # ==============================================================================
-st.markdown('<div class="panel-header">📅 Cek Ketersediaan Tugboat &amp; Sinkronisasi Jadwal Cargo STS FSRU NR (PDF)</div>', unsafe_allow_html=True)
+st.markdown('<div class="panel-header">📅 INPUT 1 — Cek Jadwal Bentrok Ajuan ARMAKUNG &amp; Kalender Cargo STS FSRU NR</div>', unsafe_allow_html=True)
 
 tab_cek, tab_pdf, tab_sts_tbl = st.tabs([
-    "🔍 Cek Bentrok Ajuan ARMAKUNG",
+    "🔍 Cek Bentrok & Timeline STS",
     "📄 Upload & Scan PDF Cargo Schedule",
-    "🗓️ Daftar Jadwal STS FSRU NR"
+    "🛠️ Edit Manual Jadwal STS"
 ])
 
 with tab_cek:
-    st.caption("Masukkan tanggal ajuan peminjaman Tugboat dari afiliasi (PLI). Sistem otomatis memeriksa irisan terhadap jadwal Cargo STS FSRU NR aktif.")
-    cc1, cc2, cc3 = st.columns([1.2, 1.2, 1.4])
-    with cc1:
-        tgl_ajuan_mulai = st.date_input("Tanggal Mulai Ajuan (Delivery)", value=date(2026, 12, 3), key="req_start")
-    with cc2:
-        tgl_ajuan_selesai = st.date_input("Tanggal Selesai Ajuan (Re-delivery)", value=date(2026, 12, 5), key="req_end")
-    with cc3:
-        kapal_ajuan = st.selectbox("Rencana Armada Tugboat", VESSEL_LIST, key="req_vessel")
+    st.caption("Masukkan **Tanggal Mulai Ajuan** dan **Durasi (Hari)** dari permintaan peminjaman Tugboat. Sistem otomatis mengecek apakah operasi **Bisa Dilakukan (Full Service)**, **Hanya Assist Berthing Saja**, atau **Tidak Bisa Sama Sekali**.")
 
-    if tgl_ajuan_selesai < tgl_ajuan_mulai:
-        st.error("Tanggal selesai ajuan tidak boleh lebih awal dari tanggal mulai ajuan.")
-    else:
-        status_code, conflict_list, overlap_days = check_sts_conflict(
-            tgl_ajuan_mulai, tgl_ajuan_selesai, st.session_state.df_sts
+    in_c1, in_c2 = st.columns([1.2, 1.0])
+    with in_c1:
+        tgl_ajuan = st.date_input("Tanggal Mulai Ajuan (Delivery)", value=date(2026, 12, 3), key="cek_tgl_ajuan")
+    with in_c2:
+        durasi_ajuan = st.number_input("Durasi Ajuan (Hari)", min_value=1, max_value=10, value=3, step=1, key="cek_durasi_ajuan")
+
+    status_code, tgl_selesai_ajuan, conflict_list, overlap_days = check_sts_availability(
+        tgl_ajuan, durasi_ajuan, st.session_state.df_sts
+    )
+    lead_days = (tgl_ajuan - date.today()).days
+    h5_note = f"✅ Memenuhi SLA Request H-5 ({lead_days} hari ke depan)" if lead_days >= 5 else f"⚠️ Kurang dari SLA H-5 ({lead_days} hari dari hari ini)"
+
+    if status_code == "BISA":
+        st.markdown(f"""
+        <div class="status-card status-safe">
+            <div style="font-size:1.05rem; font-weight:800;">✅ BISA DILAKUKAN — FULL SERVICE (BERTHING &amp; UNBERTHING)</div>
+            Periode ajuan <b>{tgl_ajuan.strftime('%d %b %Y')} s/d {tgl_selesai_ajuan.strftime('%d %b %Y')}</b> ({durasi_ajuan} hari)
+            <b>aman dan tidak beririsan</b> dengan jadwal Cargo STS FSRU NR.<br>
+            <span style="font-size:0.82rem; opacity:0.9;">{h5_note}</span>
+        </div>
+        """, unsafe_allow_html=True)
+    elif status_code == "BERTHING_ONLY":
+        irisan_str = ", ".join(d.strftime("%d %b %Y") for d in sorted(overlap_days))
+        detail_li = "".join(
+            f"<li><b>{c['STS_Mulai'].strftime('%d %b %Y')} – {c['STS_Selesai'].strftime('%d %b %Y')}</b> &bull; {c['Keterangan']}</li>"
+            for c in conflict_list
         )
-        lead_days = (tgl_ajuan_mulai - date.today()).days
-        h5_note = "✅ Memenuhi SLA Request H-5" if lead_days >= 5 else f"⚠️ Pengajuan kurang dari H-5 ({lead_days} hari dari hari ini)"
+        st.markdown(f"""
+        <div class="status-card status-warn">
+            <div style="font-size:1.05rem; font-weight:800;">⚠️ HANYA ASSIST BERTHING SAJA (TIDAK BISA UNBERTHING)</div>
+            Hari keberangkatan/berthing ajuan (<b>{tgl_ajuan.strftime('%d %b %Y')}</b>) masih aman, namun hari lanjutan
+            (s/d <b>{tgl_selesai_ajuan.strftime('%d %b %Y')}</b>) beririsan dengan jadwal STS FSRU NR pada: <b>{irisan_str}</b>.<br>
+            <b>Keputusan:</b> Diizinkan <b>Assist Berthing Only</b> pada jadwal ajuan, lalu Tugboat wajib segera kembali untuk STS FSRU NR.
+            <ul style="margin:6px 0 4px 18px;">{detail_li}</ul>
+            <span style="font-size:0.82rem; opacity:0.9;">{h5_note}</span>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        irisan_str = ", ".join(d.strftime("%d %b %Y") for d in sorted(overlap_days))
+        detail_li = "".join(
+            f"<li><b>{c['STS_Mulai'].strftime('%d %b %Y')} – {c['STS_Selesai'].strftime('%d %b %Y')}</b> &bull; {c['Keterangan']}</li>"
+            for c in conflict_list
+        )
+        st.markdown(f"""
+        <div class="status-card status-danger">
+            <div style="font-size:1.05rem; font-weight:800;">🚫 TIDAK BISA SAMA SEKALI — BENTROK LANGSUNG HARI STS FSRU NR</div>
+            Tanggal mulai ajuan <b>{tgl_ajuan.strftime('%d %b %Y')}</b> jatuh tepat di dalam jendela operasi STS FSRU NR
+            (seluruh armada Tugboat wajib <i>standby</i> penuh di FSRU NR).<br>
+            <b>Hari Bentrok:</b> {irisan_str}
+            <ul style="margin:6px 0 4px 18px;">{detail_li}</ul>
+            <span style="font-size:0.82rem; opacity:0.9;">{h5_note}</span>
+        </div>
+        """, unsafe_allow_html=True)
 
-        if status_code == "SAFE":
-            st.markdown(f"""
-            <div class="status-card status-safe">
-                <b>✅ JADWAL AMAN — DIIZINKAN FULL SERVICE (BERTHING &amp; UNBERTHING)</b><br>
-                Pengajuan <b>{kapal_ajuan}</b> periode <b>{tgl_ajuan_mulai.strftime('%d/%m/%Y')} – {tgl_ajuan_selesai.strftime('%d/%m/%Y')}</b>
-                tidak beririsan dengan jadwal STS FSRU NR.<br>
-                <span style="font-size:0.82rem; opacity:0.9;">Status SLA: {h5_note}</span>
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            irisan_str = ", ".join(d.strftime("%d/%m/%Y") for d in sorted(overlap_days))
-            detail_rows = "".join(
-                f"<li><b>{c['STS_Mulai'].strftime('%d/%m/%Y')} – {c['STS_Selesai'].strftime('%d/%m/%Y')}</b> ({c['Keterangan']})</li>"
-                for c in conflict_list
-            )
-            if status_code == "CONFLICT_FULL":
-                st.markdown(f"""
-                <div class="status-card status-danger">
-                    <b>🚨 PERINGATAN BENTROK JADWAL STS FSRU NR!</b><br>
-                    Tanggal ajuan <b>{tgl_ajuan_mulai.strftime('%d/%m/%Y')}</b> bertepatan langsung dengan hari jadwal STS FSRU NR.<br>
-                    <b>Rekomendasi Operasional:</b> Bila tetap beririsan pada hari jadwal STS, hanya diizinkan <b>ASSIST BERTHING ONLY</b> dengan koordinasi ketat jam manuver agar Tugboat segera kembali ke FSRU NR.<br>
-                    <b>Hari Irisan:</b> {irisan_str}
-                    <ul style="margin:6px 0 4px 18px;">{detail_rows}</ul>
-                    <span style="font-size:0.82rem; opacity:0.9;">Status SLA: {h5_note}</span>
-                </div>
-                """, unsafe_allow_html=True)
+    # --- VISUALISASI 1: INTERACTIVE GANTT TIMELINE JADWAL STS vs AJUAN ARMAKUNG ---
+    sts_df_vis = st.session_state.df_sts.copy()
+    if not sts_df_vis.empty:
+        sts_df_vis["Tanggal_Mulai"] = pd.to_datetime(sts_df_vis["Tanggal_Mulai"])
+        sts_df_vis["Tanggal_Selesai"] = pd.to_datetime(sts_df_vis["Tanggal_Selesai"])
+        sts_df_vis = sts_df_vis.sort_values("Tanggal_Mulai").reset_index(drop=True)
+
+        fig_gantt = go.Figure()
+
+        req_color = "#10b981" if status_code == "BISA" else ("#f59e0b" if status_code == "BERTHING_ONLY" else "#ef4444")
+        req_lbl = "AJUAN ARMAKUNG"
+        req_end_vis = pd.to_datetime(tgl_selesai_ajuan) + timedelta(days=1)
+        fig_gantt.add_trace(go.Bar(
+            y=[req_lbl],
+            x=[(req_end_vis - pd.to_datetime(tgl_ajuan)).total_seconds() * 1000],
+            base=[pd.to_datetime(tgl_ajuan)],
+            orientation="h",
+            marker=dict(color=req_color, line=dict(color="#ffffff", width=1.5)),
+            text=[f"Ajuan: {tgl_ajuan.strftime('%d %b')}–{tgl_selesai_ajuan.strftime('%d %b')} ({durasi_ajuan} hr)"],
+            textposition="inside",
+            insidetextfont=dict(color="#ffffff", size=10, family="Segoe UI"),
+            name="Ajuan ARMAKUNG",
+            hovertemplate=f"<b>Ajuan ARMAKUNG</b><br>{tgl_ajuan.strftime('%d/%m/%Y')} – {tgl_selesai_ajuan.strftime('%d/%m/%Y')} ({durasi_ajuan} hari)<extra></extra>"
+        ))
+
+        conflict_set = {c["STS_Mulai"] for c in conflict_list}
+        for _, r in sts_df_vis.iterrows():
+            s0 = r["Tanggal_Mulai"]
+            s1_vis = r["Tanggal_Selesai"] + timedelta(days=1)
+            dur_ms = (s1_vis - s0).total_seconds() * 1000
+            is_conf = s0.date() in conflict_set
+            bar_clr = "#ef4444" if (is_conf and status_code == "TIDAK_BISA") else ("#f59e0b" if is_conf else "#00bcd4")
+            fig_gantt.add_trace(go.Bar(
+                y=[r["Keterangan"]],
+                x=[dur_ms],
+                base=[s0],
+                orientation="h",
+                marker=dict(color=bar_clr, opacity=0.9, line=dict(color="#67e8f9", width=1)),
+                text=[f"{s0.strftime('%d %b')}–{r['Tanggal_Selesai'].strftime('%d %b')}"],
+                textposition="inside",
+                insidetextfont=dict(color="#041020", size=9.5, family="Segoe UI"),
+                showlegend=False,
+                hovertemplate=f"<b>{r['Keterangan']}</b><br>ETA: {s0.strftime('%d/%m/%Y')} – {r['Tanggal_Selesai'].strftime('%d/%m/%Y')}<extra></extra>"
+            ))
+
+        fig_gantt.update_layout(
+            title=dict(text="Timeline Jadwal Cargo STS FSRU NR vs Ajuan ARMAKUNG", font=dict(size=12, color="#67e8f9")),
+            barmode="overlay",
+            paper_bgcolor=PLOT_BG,
+            plot_bgcolor="rgba(0,0,0,0)",
+            font=dict(color=FONT_CLR, size=10),
+            height=max(260, 42 * (len(sts_df_vis) + 2)),
+            margin=dict(l=10, r=20, t=38, b=30),
+            xaxis=dict(type="date", gridcolor=GRID_CLR, tickformat="%d %b", automargin=True),
+            yaxis=dict(autorange="reversed", gridcolor="rgba(255,255,255,0.06)", automargin=True),
+            showlegend=False
+        )
+        st.plotly_chart(fig_gantt, use_container_width=True, config={"displayModeBar": False})
+
+        # --- VISUALISASI 2: KARTU CARGO SCHEDULE NEON ---
+        today_dt = date.today()
+        cards_html = ['<div class="sts-grid">']
+        for _, r in sts_df_vis.iterrows():
+            s0_d = r["Tanggal_Mulai"].date()
+            s1_d = r["Tanggal_Selesai"].date()
+            dur_d = (s1_d - s0_d).days + 1
+            is_conf = s0_d in conflict_set
+            extra_cls = " sts-conflict" if (is_conf and status_code == "TIDAK_BISA") else (" sts-partial" if is_conf else "")
+
+            if s1_d < today_dt:
+                tag_html = '<span class="sts-tag sts-tag-done">SELESAI</span>'
+            elif s0_d <= today_dt <= s1_d:
+                tag_html = '<span class="sts-tag sts-tag-active">BERLANGSUNG</span>'
             else:
-                st.markdown(f"""
-                <div class="status-card status-warn">
-                    <b>⚠️ BENTROK / BERIRISAN DENGAN JADWAL STS — DIIZINKAN ASSIST BERTHING ONLY</b><br>
-                    Periode ajuan <b>{tgl_ajuan_mulai.strftime('%d/%m/%Y')} – {tgl_ajuan_selesai.strftime('%d/%m/%Y')}</b> ({kapal_ajuan})
-                    beririsan dengan jadwal STS FSRU NR pada tanggal: <b>{irisan_str}</b>.<br>
-                    <b>Keputusan Sistem:</b> Tidak diizinkan Full Service (unberthing). Hanya diizinkan <b>Assist Berthing Only</b> pada jadwal ajuan, lalu Tugboat wajib kembali <i>standby</i> untuk operasi STS FSRU NR.
-                    <ul style="margin:6px 0 4px 18px;">{detail_rows}</ul>
-                    <span style="font-size:0.82rem; opacity:0.9;">Status SLA: {h5_note}</span>
+                diff = (s0_d - today_dt).days
+                tag_html = f'<span class="sts-tag sts-tag-upcoming">H-{diff}</span>'
+
+            cards_html.append(f"""
+            <div class="sts-card{extra_cls}">
+                <div class="sts-badge-row">
+                    <span class="sts-date-pill">ETA {s0_d.strftime('%d %b %Y')}</span>
+                    {tag_html}
                 </div>
-                """, unsafe_allow_html=True)
+                <div class="sts-vessel">🚢 {r['Keterangan']}</div>
+                <div class="sts-window">Jendela STS: {s0_d.strftime('%d/%m')} – {s1_d.strftime('%d/%m/%Y')} ({dur_d} hari)</div>
+            </div>
+            """)
+        cards_html.append('</div>')
+        st.markdown("".join(cards_html), unsafe_allow_html=True)
 
 with tab_pdf:
     st.caption("Unggah PDF Cargo Schedule FSRU NR terbaru (format kolom ETA seperti '06-Nov', '04-Dec' otomatis terbaca). Dapat diunggah berulang kali setiap ada update bulanan.")
@@ -1453,7 +1586,7 @@ with tab_pdf:
             else:
                 st.warning(
                     "Tidak ditemukan pola tanggal ETA pada PDF tersebut (kemungkinan PDF berupa hasil scan gambar). "
-                    "Anda tetap dapat menginput atau mengedit jadwal secara manual di tab 'Daftar Jadwal STS FSRU NR'."
+                    "Anda tetap dapat menginput jadwal manual di tab 'Edit Manual Jadwal STS'."
                 )
                 with st.expander("Lihat teks mentah hasil pembacaan PDF"):
                     st.text(raw_debug[:2500] if raw_debug else "(Kosong)")
@@ -1463,7 +1596,7 @@ with tab_pdf:
         st.dataframe(pd.DataFrame(st.session_state.pdf_scan_history), use_container_width=True, hide_index=True)
 
 with tab_sts_tbl:
-    st.caption("Daftar jadwal Cargo STS FSRU NR yang aktif sebagai acuan pengecekan bentrok. Anda dapat mengedit, menambah, atau menghapus jadwal secara langsung.")
+    st.caption("Edit, tambah, atau hapus jadwal Cargo STS FSRU NR secara langsung.")
     sts_edit_df = st.data_editor(
         st.session_state.df_sts,
         num_rows="dynamic",
@@ -1498,11 +1631,40 @@ with tab_sts_tbl:
             st.rerun()
 
 # ==============================================================================
-# BARIS 5: MANAJEMEN DATA PELAYANAN (INPUT CALL BARU + LIVE EDIT TABEL + EXPORT CSV)
+# BARIS 5: INPUT 2 — UPDATE DATA REKAP PASCA-ASSIST (TERPISAH DARI CEK BENTROK)
 # ==============================================================================
-st.markdown('<div class="panel-header">✏️ Manajemen Data Pelayanan (Tambah, Edit &amp; Hapus Langsung)</div>', unsafe_allow_html=True)
+st.markdown('<div class="panel-header">✏️ INPUT 2 — Update Data Rekap Realisasi Pasca-Assist (Tambah, Edit &amp; Hapus)</div>', unsafe_allow_html=True)
 
-tab_edit, tab_add = st.tabs(["📝 Edit / Hapus Data Langsung", "➕ Tambah Call Baru (Auto-Hitung)"])
+tab_add, tab_edit = st.tabs(["➕ Input Realisasi Pasca-Assist (Auto-Hitung)", "📝 Edit / Hapus Rekap 2026"])
+
+with tab_add:
+    st.caption("Gunakan form ini **setelah kegiatan assist selesai** untuk mencatat realisasi sewa, konsumsi BBM (HSD), dan memperbarui KPI pendapatan secara otomatis.")
+    with st.form("form_tambah_call", clear_on_submit=True):
+        f1, f2, f3, f4 = st.columns(4)
+        in_bulan = f1.selectbox("Bulan", MONTH_LIST, index=10)
+        in_kapal = f2.selectbox("Nama Kapal", VESSEL_LIST)
+        in_del = f3.text_input("Tgl Delivery", value="10/11/2026")
+        in_red = f4.text_input("Tgl Re-delivery", value="13/11/2026")
+
+        f5, f6, f7, f8 = st.columns(4)
+        in_dur = f5.number_input("Durasi Aktual (Hari)", min_value=0.1, max_value=10.0, value=3.00, step=0.05)
+        in_hsd_l = f6.number_input("Konsumsi HSD (Liter)", min_value=0, max_value=20000, value=7800, step=100)
+        in_hrg = f7.number_input("Harga HSD (Rp/Liter)", min_value=0, max_value=50000, value=17755, step=100)
+        in_tarif = f8.number_input("Tarif Sewa (Rp/Hari)", min_value=0, max_value=100000000, value=49000000, step=500000)
+
+        if st.form_submit_button("💾 Simpan Realisasi Assist ke Rekap Dashboard", type="primary", use_container_width=True):
+            calc_sewa = round(in_dur * in_tarif)
+            calc_hsd = round(in_hsd_l * in_hrg)
+            calc_pbbkb = round(calc_hsd * 0.10)
+            new_row = pd.DataFrame([{
+                "Bulan": in_bulan, "Kapal": in_kapal,
+                "Delivery": in_del, "Redelivery": in_red,
+                "Durasi": in_dur, "HSD_L": in_hsd_l, "Harga_HSD": in_hrg,
+                "Sewa": calc_sewa, "HSD_Rp": calc_hsd, "PBBKB": calc_pbbkb
+            }])
+            st.session_state.df_data = pd.concat([st.session_state.df_data, new_row], ignore_index=True)
+            st.success(f"Realisasi assist ({in_kapal} - {in_bulan}) berhasil ditambahkan ke rekap!")
+            st.rerun()
 
 with tab_edit:
     st.caption("Klik dua kali pada sel untuk mengedit angka, klik tanda (+) di baris bawah untuk menambah, atau centang baris lalu tekan Delete untuk menghapus. Klik **Simpan & Update Dashboard** agar seluruh KPI dan grafik terbarui.")
@@ -1533,38 +1695,9 @@ with tab_edit:
             st.rerun()
     with btn_c2:
         st.download_button(
-            "⬇️ Unduh Data Terbaru (CSV)",
+            "⬇️ Unduh Data Rekap (CSV)",
             data=st.session_state.df_data.to_csv(index=False).encode("utf-8"),
             file_name="Data_ARMAKUNG_2026_Updated.csv",
             mime="text/csv",
             use_container_width=True
         )
-
-with tab_add:
-    st.caption("Masukkan parameter operasional kapal. Biaya Sewa, Biaya HSD, dan PBBKB 10% akan dihitung otomatis.")
-    with st.form("form_tambah_call", clear_on_submit=True):
-        f1, f2, f3, f4 = st.columns(4)
-        in_bulan = f1.selectbox("Bulan", MONTH_LIST, index=10)
-        in_kapal = f2.selectbox("Nama Kapal", VESSEL_LIST)
-        in_del = f3.text_input("Tgl Delivery", value="10/11/2026")
-        in_red = f4.text_input("Tgl Re-delivery", value="13/11/2026")
-
-        f5, f6, f7, f8 = st.columns(4)
-        in_dur = f5.number_input("Durasi (Hari)", min_value=0.1, max_value=10.0, value=3.00, step=0.05)
-        in_hsd_l = f6.number_input("Konsumsi HSD (Liter)", min_value=0, max_value=20000, value=7800, step=100)
-        in_hrg = f7.number_input("Harga HSD (Rp/Liter)", min_value=0, max_value=50000, value=17755, step=100)
-        in_tarif = f8.number_input("Tarif Sewa (Rp/Hari)", min_value=0, max_value=100000000, value=49000000, step=500000)
-
-        if st.form_submit_button("➕ Tambahkan Call ke Dashboard", type="primary", use_container_width=True):
-            calc_sewa = round(in_dur * in_tarif)
-            calc_hsd = round(in_hsd_l * in_hrg)
-            calc_pbbkb = round(calc_hsd * 0.10)
-            new_row = pd.DataFrame([{
-                "Bulan": in_bulan, "Kapal": in_kapal,
-                "Delivery": in_del, "Redelivery": in_red,
-                "Durasi": in_dur, "HSD_L": in_hsd_l, "Harga_HSD": in_hrg,
-                "Sewa": calc_sewa, "HSD_Rp": calc_hsd, "PBBKB": calc_pbbkb
-            }])
-            st.session_state.df_data = pd.concat([st.session_state.df_data, new_row], ignore_index=True)
-            st.success(f"Call baru ({in_kapal} - {in_bulan}) berhasil ditambahkan!")
-            st.rerun()
