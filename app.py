@@ -1,9 +1,18 @@
 import os
+import re
+import io
 import base64
+from datetime import date, datetime, timedelta
 import streamlit as st
 import streamlit.components.v1 as components
 import pandas as pd
 import plotly.graph_objects as go
+
+try:
+    import pdfplumber
+    HAS_PDFPLUMBER = True
+except ImportError:
+    HAS_PDFPLUMBER = False
 
 # ==============================================================================
 # KONFIGURASI LOGO & FAVICON (OTOMATIS MEMBACA pertamina2.png)
@@ -234,6 +243,34 @@ st.markdown("""
         color: #ffffff;
     }
 
+    /* Status Alert Card untuk Pengecekan Jadwal STS */
+    .status-card {
+        border-radius: 8px;
+        padding: 14px 16px;
+        margin-top: 8px;
+        margin-bottom: 10px;
+        font-size: 0.92rem;
+        line-height: 1.5;
+    }
+    .status-safe {
+        background: rgba(16, 185, 129, 0.14);
+        border: 1.5px solid #10b981;
+        color: #d1fae5;
+        box-shadow: 0 0 16px rgba(16, 185, 129, 0.2);
+    }
+    .status-warn {
+        background: rgba(245, 158, 11, 0.15);
+        border: 1.5px solid #f59e0b;
+        color: #fef3c7;
+        box-shadow: 0 0 16px rgba(245, 158, 11, 0.22);
+    }
+    .status-danger {
+        background: rgba(239, 68, 68, 0.16);
+        border: 1.5px solid #ef4444;
+        color: #fee2e2;
+        box-shadow: 0 0 16px rgba(239, 68, 68, 0.25);
+    }
+
     div[data-testid="stPlotlyChart"] {
         border: 1px solid rgba(0, 229, 255, 0.22);
         border-radius: 7px;
@@ -276,7 +313,231 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==============================================================================
-# DATA AKTUAL 2026 (JANUARI – OKTOBER 2026, 19 CALL)
+# HELPER PARSER PDF JADWAL STS FSRU NR & PENGECEKAN BENTROK
+# ==============================================================================
+MONTH_MAP_ID_EN = {
+    "jan": 1, "januari": 1, "january": 1,
+    "feb": 2, "februari": 2, "february": 2,
+    "mar": 3, "maret": 3, "march": 3,
+    "apr": 4, "april": 4,
+    "mei": 5, "may": 5,
+    "jun": 6, "juni": 6, "june": 6,
+    "jul": 7, "juli": 7, "july": 7,
+    "agt": 8, "agu": 8, "agustus": 8, "aug": 8, "august": 8,
+    "sep": 9, "sept": 9, "september": 9,
+    "okt": 10, "oktober": 10, "oct": 10, "october": 10,
+    "nov": 11, "november": 11,
+    "des": 12, "desember": 12, "dec": 12, "december": 12,
+}
+
+def extract_sts_from_pdf(uploaded_file, default_year=2026):
+    """Membaca tanggal jadwal STS dari file PDF (mendukung format tanggal teks maupun tabel)."""
+    if not HAS_PDFPLUMBER:
+        return [], "Library `pdfplumber` belum terpasang. Pastikan `pdfplumber` ada di requirements.txt."
+
+    extracted = []
+    seen_ranges = set()
+    raw_text_all = ""
+
+    try:
+        with pdfplumber.open(io.BytesIO(uploaded_file.getvalue())) as pdf:
+            for page_idx, page in enumerate(pdf.pages, start=1):
+                txt = page.extract_text() or ""
+                raw_text_all += f"\n--- Page {page_idx} ---\n" + txt
+
+                # 1. Deteksi rentang tanggal: DD/MM/YYYY - DD/MM/YYYY atau DD-MM-YYYY s/d DD-MM-YYYY
+                range_pat = re.compile(
+                    r'(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})\s*(?:-|–|s/d|sd|to|hingga)\s*(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})',
+                    re.IGNORECASE
+                )
+                for m in range_pat.finditer(txt):
+                    d1, m1, y1, d2, m2, y2 = map(int, m.groups())
+                    y1 = y1 + 2000 if y1 < 100 else y1
+                    y2 = y2 + 2000 if y2 < 100 else y2
+                    try:
+                        dt1, dt2 = date(y1, m1, d1), date(y2, m2, d2)
+                        if dt2 < dt1:
+                            dt1, dt2 = dt2, dt1
+                        key = (dt1, dt2)
+                        if key not in seen_ranges:
+                            seen_ranges.add(key)
+                            extracted.append({
+                                "Tanggal_Mulai": dt1,
+                                "Tanggal_Selesai": dt2,
+                                "Keterangan": f"STS FSRU NR (Scan PDF Hal. {page_idx})",
+                                "Sumber": uploaded_file.name
+                            })
+                    except ValueError:
+                        pass
+
+                # 2. Deteksi rentang teks bulan: "10 - 12 Nov 2026" atau "10-12 November 2026"
+                text_range_pat = re.compile(
+                    r'(\d{1,2})\s*(?:-|–|s/d|sd|to)\s*(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})',
+                    re.IGNORECASE
+                )
+                for m in text_range_pat.finditer(txt):
+                    d1, d2, m_str, y_str = m.groups()
+                    mon = MONTH_MAP_ID_EN.get(m_str.lower())
+                    if mon:
+                        try:
+                            dt1 = date(int(y_str), mon, int(d1))
+                            dt2 = date(int(y_str), mon, int(d2))
+                            if dt2 < dt1:
+                                dt1, dt2 = dt2, dt1
+                            key = (dt1, dt2)
+                            if key not in seen_ranges:
+                                seen_ranges.add(key)
+                                extracted.append({
+                                    "Tanggal_Mulai": dt1,
+                                    "Tanggal_Selesai": dt2,
+                                    "Keterangan": f"STS FSRU NR (Scan PDF Hal. {page_idx})",
+                                    "Sumber": uploaded_file.name
+                                })
+                        except ValueError:
+                            pass
+
+                # 3. Deteksi tanggal tunggal: DD/MM/YYYY atau DD-MM-YYYY
+                single_num_pat = re.compile(r'(?<!\d)(\d{1,2})[/-](\d{1,2})[/-](20\d{2})(?!\d)')
+                for m in single_num_pat.finditer(txt):
+                    d1, m1, y1 = map(int, m.groups())
+                    try:
+                        dt = date(y1, m1, d1)
+                        already_covered = any(r[0] <= dt <= r[1] for r in seen_ranges)
+                        if not already_covered:
+                            key = (dt, dt)
+                            seen_ranges.add(key)
+                            extracted.append({
+                                "Tanggal_Mulai": dt,
+                                "Tanggal_Selesai": dt,
+                                "Keterangan": f"STS FSRU NR (Scan PDF Hal. {page_idx})",
+                                "Sumber": uploaded_file.name
+                            })
+                    except ValueError:
+                        pass
+
+                # 4. Deteksi tanggal tunggal format teks: "21 September 2026" atau "21 Sep 2026"
+                single_txt_pat = re.compile(r'(?<!\d)(\d{1,2})\s+([A-Za-z]+)\s+(20\d{2})', re.IGNORECASE)
+                for m in single_txt_pat.finditer(txt):
+                    d1, m_str, y_str = m.groups()
+                    mon = MONTH_MAP_ID_EN.get(m_str.lower())
+                    if mon:
+                        try:
+                            dt = date(int(y_str), mon, int(d1))
+                            already_covered = any(r[0] <= dt <= r[1] for r in seen_ranges)
+                            if not already_covered:
+                                key = (dt, dt)
+                                seen_ranges.add(key)
+                                extracted.append({
+                                    "Tanggal_Mulai": dt,
+                                    "Tanggal_Selesai": dt,
+                                    "Keterangan": f"STS FSRU NR (Scan PDF Hal. {page_idx})",
+                                    "Sumber": uploaded_file.name
+                                })
+                        except ValueError:
+                            pass
+
+                # 5. Deteksi format Cargo Schedule matriks kalender (baris berisi H / STS / D+E / S+DE)
+                tables = page.extract_tables() or []
+                for tbl in tables:
+                    if not tbl or len(tbl) < 2:
+                        continue
+                    tbl_month = None
+                    for row in tbl[:3]:
+                        for cell in row:
+                            if cell:
+                                for tok in re.findall(r'[A-Za-z]+', str(cell)):
+                                    if tok.lower() in MONTH_MAP_ID_EN:
+                                        tbl_month = MONTH_MAP_ID_EN[tok.lower()]
+                                        break
+                    if not tbl_month:
+                        for tok in re.findall(r'[A-Za-z]+', txt):
+                            if tok.lower() in MONTH_MAP_ID_EN:
+                                tbl_month = MONTH_MAP_ID_EN[tok.lower()]
+                                break
+
+                    day_col_map = {}
+                    for row in tbl[:4]:
+                        nums_found = {}
+                        for c_idx, cell in enumerate(row):
+                            if cell and str(cell).strip().isdigit():
+                                val = int(str(cell).strip())
+                                if 1 <= val <= 31:
+                                    nums_found[c_idx] = val
+                        if len(nums_found) >= 10:
+                            day_col_map = nums_found
+                            break
+
+                    if tbl_month and day_col_map:
+                        for row in tbl:
+                            sts_days = []
+                            cargo_label = ""
+                            for c_idx, cell in enumerate(row):
+                                s_cell = str(cell or "").strip().upper()
+                                if c_idx < min(day_col_map.keys()) and s_cell and len(s_cell) >= 3:
+                                    if "NR" in s_cell or "TG" in s_cell or "LNG" in s_cell:
+                                        cargo_label = s_cell
+                                if c_idx in day_col_map:
+                                    if any(k in s_cell for k in ["STS", "S+DE", "D+E", "BERTH", "DISCH"]) or s_cell == "H":
+                                        sts_days.append(day_col_map[c_idx])
+                            if sts_days:
+                                sts_days = sorted(set(sts_days))
+                                try:
+                                    dt1 = date(default_year, tbl_month, sts_days[0])
+                                    dt2 = date(default_year, tbl_month, sts_days[-1])
+                                    key = (dt1, dt2)
+                                    if key not in seen_ranges:
+                                        seen_ranges.add(key)
+                                        extracted.append({
+                                            "Tanggal_Mulai": dt1,
+                                            "Tanggal_Selesai": dt2,
+                                            "Keterangan": f"STS Cargo {cargo_label or 'FSRU NR'} (Matriks PDF)",
+                                            "Sumber": uploaded_file.name
+                                        })
+                                except ValueError:
+                                    pass
+    except Exception as e:
+        return [], f"Gagal memindai PDF: {e}"
+
+    extracted.sort(key=lambda x: x["Tanggal_Mulai"])
+    return extracted, raw_text_all
+
+
+def check_sts_conflict(req_start: date, req_end: date, sts_df: pd.DataFrame):
+    """
+    Mengecek irisan antara tanggal ajuan ARMAKUNG (req_start..req_end)
+    dengan jadwal STS FSRU NR di sts_df.
+    """
+    if sts_df is None or sts_df.empty:
+        return "SAFE", [], set()
+
+    req_days = {req_start + timedelta(days=i) for i in range((req_end - req_start).days + 1)}
+    conflicts = []
+    overlap_days_all = set()
+
+    for _, row in sts_df.iterrows():
+        s_start = pd.to_datetime(row["Tanggal_Mulai"]).date()
+        s_end = pd.to_datetime(row["Tanggal_Selesai"]).date()
+        sts_days = {s_start + timedelta(days=i) for i in range((s_end - s_start).days + 1)}
+        inter = req_days.intersection(sts_days)
+        if inter:
+            overlap_days_all.update(inter)
+            conflicts.append({
+                "STS_Mulai": s_start,
+                "STS_Selesai": s_end,
+                "Keterangan": row.get("Keterangan", "STS FSRU NR"),
+                "Hari_Irisan": sorted(inter)
+            })
+
+    if not conflicts:
+        return "SAFE", [], set()
+
+    if req_start in overlap_days_all and len(req_days) == 1:
+        return "CONFLICT_FULL", conflicts, overlap_days_all
+    return "BERTHING_ONLY", conflicts, overlap_days_all
+
+
+# ==============================================================================
+# DATA AKTUAL 2026 (JANUARI – OKTOBER 2026, 19 CALL) & DEFAULT JADWAL STS NR
 # ==============================================================================
 MONTH_ORDER = {
     "Jan": 1, "Feb": 2, "Mar": 3, "Apr": 4, "Mei": 5, "Jun": 6,
@@ -307,8 +568,24 @@ INITIAL_DATA = [
     {"Bulan": "Okt", "Kapal": "TB. MEDELIN PARTNER", "Delivery": "23/10/2026", "Redelivery": "25/10/2026", "Durasi": 1.60, "HSD_L": 4050, "Harga_HSD": 17755, "Sewa": 78604167, "HSD_Rp": 71907750, "PBBKB": 6907275},
 ]
 
+INITIAL_STS_SCHEDULE = [
+    {"Tanggal_Mulai": date(2026, 11, 27), "Tanggal_Selesai": date(2026, 11, 29), "Keterangan": "STS LNGC Cargo Nov #3 - FSRU NR 1", "Sumber": "Default Sistem"},
+    {"Tanggal_Mulai": date(2026, 12, 5),  "Tanggal_Selesai": date(2026, 12, 7),  "Keterangan": "STS LNGC Cargo Des #1 - FSRU NR 1", "Sumber": "Default Sistem"},
+    {"Tanggal_Mulai": date(2026, 12, 16), "Tanggal_Selesai": date(2026, 12, 18), "Keterangan": "STS LNGC Cargo Des #2 - FSRU NR 1", "Sumber": "Default Sistem"},
+    {"Tanggal_Mulai": date(2026, 12, 26), "Tanggal_Selesai": date(2026, 12, 28), "Keterangan": "STS LNGC Cargo Des #3 - FSRU NR 1", "Sumber": "Default Sistem"},
+]
+
 if "df_data" not in st.session_state:
     st.session_state.df_data = pd.DataFrame(INITIAL_DATA)
+
+if "df_sts" not in st.session_state:
+    st.session_state.df_sts = pd.DataFrame(INITIAL_STS_SCHEDULE)
+
+if "pdf_scan_history" not in st.session_state:
+    st.session_state.pdf_scan_history = []
+
+if "pdf_uploader_key" not in st.session_state:
+    st.session_state.pdf_uploader_key = 0
 
 # ==============================================================================
 # SIDEBAR: FILTER & UPLOAD CSV
@@ -384,7 +661,7 @@ st.markdown(f"""
     {logo_html}
     <div>
         <div class="cmd-title">ARMAKUNG MARITIME MONITORING &amp; FUEL COMMAND CENTER</div>
-        <div class="cmd-subtitle">PT NUSANTARA REGAS </div>
+        <div class="cmd-subtitle">PT NUSANTARA REGAS</div>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -499,7 +776,6 @@ with col_mid:
             .wrap { position:relative; width:100%; height:100%; display:flex; flex-direction:column; border:1px solid rgba(0,229,255,0.40); border-radius:7px; overflow:hidden; }
             #map { flex:1; width:100%; min-height:240px; background:#050d1a; }
 
-            /* Filter Deep Navy untuk OpenStreetMap (100% Tanpa API Key) */
             .dark-navy-tiles {
                 filter: invert(100%) hue-rotate(190deg) brightness(86%) contrast(95%) saturate(135%);
             }
@@ -668,12 +944,10 @@ with col_mid:
         <script>
             var map = L.map('map', { center: [-5.75, 106.45], zoom: 8, doubleClickZoom: false });
 
-            // 1. Deep Navy Maritime (OpenStreetMap + Dark Navy CSS Filter — Tanpa API Key)
             var osmDark = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap', maxZoom: 19, className: 'dark-navy-tiles'
             }).addTo(map);
 
-            // 2. Satellite Hybrid (Esri Imagery + Label Wilayah — Tanpa API Key)
             var esriSat = L.layerGroup([
                 L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
                     attribution: 'Esri Satellite', maxZoom: 19
@@ -683,7 +957,6 @@ with col_mid:
                 })
             ]);
 
-            // 3. Ocean Bathymetry (Esri Ocean Base + Label Laut — Tanpa API Key)
             var esriOcean = L.layerGroup([
                 L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}', {
                     attribution: 'Esri Ocean', maxZoom: 13
@@ -693,12 +966,10 @@ with col_mid:
                 })
             ]);
 
-            // 4. Street Map Light (OpenStreetMap Standar — Tanpa API Key)
             var osmLight = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap', maxZoom: 19
             });
 
-            // Overlay Rambu & Alur Pelayaran (OpenSeaMap — Tanpa API Key)
             var seaMarks = L.tileLayer('https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png', {
                 attribution: 'OpenSeaMap', maxZoom: 18, opacity: 0.9
             }).addTo(map);
@@ -988,7 +1259,166 @@ with b3:
     st.plotly_chart(fig_cum, use_container_width=True, config={"displayModeBar": False})
 
 # ==============================================================================
-# BARIS 4: MANAJEMEN DATA (INPUT CALL BARU + LIVE EDIT TABEL + EXPORT CSV)
+# BARIS 4: CEK BENTROK JADWAL AJUAN ARMAKUNG vs JADWAL STS FSRU NR (UPLOAD PDF)
+# ==============================================================================
+st.markdown('<div class="panel-header">📅 Cek Ketersediaan Tugboat &amp; Sinkronisasi Jadwal STS FSRU NR (PDF)</div>', unsafe_allow_html=True)
+
+tab_cek, tab_pdf, tab_sts_tbl = st.tabs([
+    "🔍 Cek Bentrok Ajuan ARMAKUNG",
+    "📄 Upload & Scan PDF Jadwal STS",
+    "🗓️ Daftar Jadwal STS FSRU NR"
+])
+
+with tab_cek:
+    st.caption("Masukkan tanggal ajuan peminjaman Tugboat dari afiliasi (PLI). Sistem otomatis memeriksa irisan terhadap jadwal STS FSRU NR aktif.")
+    cc1, cc2, cc3 = st.columns([1.2, 1.2, 1.4])
+    with cc1:
+        tgl_ajuan_mulai = st.date_input("Tanggal Mulai Ajuan (Delivery)", value=date(2026, 12, 4), key="req_start")
+    with cc2:
+        tgl_ajuan_selesai = st.date_input("Tanggal Selesai Ajuan (Re-delivery)", value=date(2026, 12, 6), key="req_end")
+    with cc3:
+        kapal_ajuan = st.selectbox("Rencana Armada Tugboat", VESSEL_LIST, key="req_vessel")
+
+    if tgl_ajuan_selesai < tgl_ajuan_mulai:
+        st.error("Tanggal selesai ajuan tidak boleh lebih awal dari tanggal mulai ajuan.")
+    else:
+        status_code, conflict_list, overlap_days = check_sts_conflict(
+            tgl_ajuan_mulai, tgl_ajuan_selesai, st.session_state.df_sts
+        )
+        lead_days = (tgl_ajuan_mulai - date.today()).days
+        h5_note = "✅ Memenuhi SLA Request H-5" if lead_days >= 5 else f"⚠️ Pengajuan kurang dari H-5 ({lead_days} hari dari hari ini)"
+
+        if status_code == "SAFE":
+            st.markdown(f"""
+            <div class="status-card status-safe">
+                <b>✅ JADWAL AMAN — DIIZINKAN FULL SERVICE (BERTHING &amp; UNBERTHING)</b><br>
+                Pengajuan <b>{kapal_ajuan}</b> periode <b>{tgl_ajuan_mulai.strftime('%d/%m/%Y')} – {tgl_ajuan_selesai.strftime('%d/%m/%Y')}</b>
+                tidak beririsan dengan jadwal STS FSRU NR.<br>
+                <span style="font-size:0.82rem; opacity:0.9;">Status SLA: {h5_note}</span>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            irisan_str = ", ".join(d.strftime("%d/%m/%Y") for d in sorted(overlap_days))
+            detail_rows = "".join(
+                f"<li><b>{c['STS_Mulai'].strftime('%d/%m/%Y')} – {c['STS_Selesai'].strftime('%d/%m/%Y')}</b> ({c['Keterangan']})</li>"
+                for c in conflict_list
+            )
+            if status_code == "CONFLICT_FULL":
+                st.markdown(f"""
+                <div class="status-card status-danger">
+                    <b>🚨 PERINGATAN BENTROK JADWAL STS FSRU NR!</b><br>
+                    Tanggal ajuan <b>{tgl_ajuan_mulai.strftime('%d/%m/%Y')}</b> bertepatan langsung dengan hari jadwal STS FSRU NR.<br>
+                    <b>Rekomendasi Operasional:</b> Bila tetap beririsan pada hari jadwal STS, hanya diizinkan <b>ASSIST BERTHING ONLY</b> dengan koordinasi ketat jam manuver agar Tugboat segera kembali ke FSRU NR.<br>
+                    <b>Hari Irisan:</b> {irisan_str}
+                    <ul style="margin:6px 0 4px 18px;">{detail_rows}</ul>
+                    <span style="font-size:0.82rem; opacity:0.9;">Status SLA: {h5_note}</span>
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                st.markdown(f"""
+                <div class="status-card status-warn">
+                    <b>⚠️ BENTROK / BERIRISAN DENGAN JADWAL STS — DIIZINKAN ASSIST BERTHING ONLY</b><br>
+                    Periode ajuan <b>{tgl_ajuan_mulai.strftime('%d/%m/%Y')} – {tgl_ajuan_selesai.strftime('%d/%m/%Y')}</b> ({kapal_ajuan})
+                    beririsan dengan jadwal STS FSRU NR pada tanggal: <b>{irisan_str}</b>.<br>
+                    <b>Keputusan Sistem:</b> Tidak diizinkan Full Service (unberthing). Hanya diizinkan <b>Assist Berthing Only</b> pada jadwal ajuan, lalu Tugboat wajib kembali <i>standby</i> untuk operasi STS FSRU NR.
+                    <ul style="margin:6px 0 4px 18px;">{detail_rows}</ul>
+                    <span style="font-size:0.82rem; opacity:0.9;">Status SLA: {h5_note}</span>
+                </div>
+                """, unsafe_allow_html=True)
+
+with tab_pdf:
+    st.caption("Unggah PDF jadwal STS FSRU NR terbaru (dapat dilakukan berulang kali setiap ada update bulanan). Klik tombol scan untuk menyinkronkan tanggal ke sistem.")
+    if not HAS_PDFPLUMBER:
+        st.warning("Library `pdfplumber` belum terpasang. Tambahkan baris `pdfplumber>=0.10.0` pada file `requirements.txt` di GitHub Anda.")
+
+    up_c1, up_c2 = st.columns([2, 1])
+    with up_c1:
+        uploaded_pdf = st.file_uploader(
+            "Pilih File PDF Jadwal STS FSRU NR:",
+            type=["pdf"],
+            key=f"pdf_sts_uploader_{st.session_state.pdf_uploader_key}"
+        )
+    with up_c2:
+        sync_mode = st.radio(
+            "Mode Sinkronisasi:",
+            ["Gabungkan & Perbarui (Merge)", "Ganti Seluruh Jadwal (Replace)"],
+            index=0
+        )
+        scan_year = st.number_input("Tahun Default (jika PDF tanpa tahun)", min_value=2025, max_value=2030, value=2026, step=1)
+
+    if st.button("🔎 Upload & Scan Jadwal STS Baru", type="primary", use_container_width=True, disabled=(uploaded_pdf is None)):
+        if uploaded_pdf is not None:
+            scanned_rows, raw_debug = extract_sts_from_pdf(uploaded_pdf, default_year=int(scan_year))
+            if scanned_rows:
+                df_new_sts = pd.DataFrame(scanned_rows)
+                if sync_mode.startswith("Ganti"):
+                    st.session_state.df_sts = df_new_sts.reset_index(drop=True)
+                else:
+                    combined = pd.concat([st.session_state.df_sts, df_new_sts], ignore_index=True)
+                    combined["Tanggal_Mulai"] = pd.to_datetime(combined["Tanggal_Mulai"]).dt.date
+                    combined["Tanggal_Selesai"] = pd.to_datetime(combined["Tanggal_Selesai"]).dt.date
+                    combined = combined.drop_duplicates(subset=["Tanggal_Mulai", "Tanggal_Selesai"], keep="last")
+                    combined = combined.sort_values("Tanggal_Mulai").reset_index(drop=True)
+                    st.session_state.df_sts = combined
+
+                st.session_state.pdf_scan_history.append({
+                    "Waktu": datetime.now().strftime("%d/%m/%Y %H:%M"),
+                    "File": uploaded_pdf.name,
+                    "Mode": sync_mode,
+                    "Jumlah_Jadwal": len(scanned_rows)
+                })
+                st.session_state.pdf_uploader_key += 1
+                st.success(f"Berhasil memindai {len(scanned_rows)} jadwal STS dari '{uploaded_pdf.name}' dan menyinkronkannya ke sistem!")
+                st.rerun()
+            else:
+                st.warning(
+                    "Tidak ditemukan pola tanggal teks pada PDF tersebut (kemungkinan PDF berupa hasil scan gambar). "
+                    "Anda tetap dapat menginput atau mengedit jadwal secara manual di tab 'Daftar Jadwal STS FSRU NR'."
+                )
+                with st.expander("Lihat teks mentah hasil pembacaan PDF"):
+                    st.text(raw_debug[:2500] if raw_debug else "(Kosong)")
+
+    if st.session_state.pdf_scan_history:
+        st.markdown("**Riwayat Sinkronisasi PDF:**")
+        st.dataframe(pd.DataFrame(st.session_state.pdf_scan_history), use_container_width=True, hide_index=True)
+
+with tab_sts_tbl:
+    st.caption("Daftar jadwal STS FSRU NR yang saat ini aktif digunakan sebagai acuan pengecekan bentrok. Anda dapat mengedit, menambah, atau menghapus jadwal secara langsung.")
+    sts_edit_df = st.data_editor(
+        st.session_state.df_sts,
+        num_rows="dynamic",
+        use_container_width=True,
+        height=260,
+        column_config={
+            "Tanggal_Mulai": st.column_config.DateColumn("Tanggal Mulai STS", format="DD/MM/YYYY", required=True),
+            "Tanggal_Selesai": st.column_config.DateColumn("Tanggal Selesai STS", format="DD/MM/YYYY", required=True),
+            "Keterangan": st.column_config.TextColumn("Keterangan / Cargo"),
+            "Sumber": st.column_config.TextColumn("Sumber Update"),
+        },
+        key="editor_sts_schedule"
+    )
+    sc1, sc2, sc3 = st.columns([1.2, 1.2, 1.6])
+    with sc1:
+        if st.button("💾 Simpan Perubahan Jadwal STS", type="primary", use_container_width=True):
+            cleaned_sts = sts_edit_df.dropna(subset=["Tanggal_Mulai", "Tanggal_Selesai"]).reset_index(drop=True)
+            st.session_state.df_sts = cleaned_sts
+            st.success("Jadwal STS FSRU NR berhasil disimpan!")
+            st.rerun()
+    with sc2:
+        st.download_button(
+            "⬇️ Unduh Jadwal STS (CSV)",
+            data=st.session_state.df_sts.to_csv(index=False).encode("utf-8"),
+            file_name="Jadwal_STS_FSRU_NR_2026.csv",
+            mime="text/csv",
+            use_container_width=True
+        )
+    with sc3:
+        if st.button("🔄 Reset Jadwal STS Default", use_container_width=True):
+            st.session_state.df_sts = pd.DataFrame(INITIAL_STS_SCHEDULE)
+            st.rerun()
+
+# ==============================================================================
+# BARIS 5: MANAJEMEN DATA PELAYANAN (INPUT CALL BARU + LIVE EDIT TABEL + EXPORT CSV)
 # ==============================================================================
 st.markdown('<div class="panel-header">✏️ Manajemen Data Pelayanan (Tambah, Edit &amp; Hapus Langsung)</div>', unsafe_allow_html=True)
 
